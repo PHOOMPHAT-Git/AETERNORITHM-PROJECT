@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aeternorithm Project</title>
+    <link rel="stylesheet" href="/css/pages/roblox-verify.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <main class="verify-page">
+        <% if (typeof success !== 'undefined' && success) { %>
+            <div class="status-icon success">&#10003;</div>
+
+            <% if (typeof alreadyVerified !== 'undefined' && alreadyVerified) { %>
+                <h1 class="status-title success">Already Verified</h1>
+                <p class="status-message">You have already verified your Roblox account.</p>
+            <% } else { %>
+                <h1 class="status-title success">Verification Successful</h1>
+                <p class="status-message">Your Discord account has been linked to your Roblox account.</p>
+            <% } %>
+
+            <div class="info-card">
+                <div class="info-row">
+                    <span class="info-label">Roblox ID</span>
+                    <span class="info-value"><%= robloxUserId %></span>
+                </div>
+            </div>
+
+            <div class="hint">
+                <p>You can now close this page and return to Discord.</p>
+            </div>
+
+        <% } else { %>
+            <div class="status-icon error">&#10007;</div>
+            <h1 class="status-title error">Verification Failed</h1>
+            <p class="status-message"><%= typeof error !== 'undefined' ? error : 'An error occurred during verification.' %></p>
+
+            <div class="hint error">
+                <p>Please return to Discord and request a new verification link.</p>
+            </div>
+        <% } %>
+    </main>
+    <script src="/js/security.js"></script>
+</body>
+</html>

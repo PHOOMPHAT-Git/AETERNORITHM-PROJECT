@@ -1,0 +1,103 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: #0a0a0c;
+    color: #e4e4e7;
+    line-height: 1.6;
+}
+
+a { text-decoration: none; color: inherit; }
+
+.container { max-width: 680px; margin: 0 auto; padding: 0 24px; }
+
+/* Navbar */
+.navbar {
+    position: fixed; top: 0; left: 0; right: 0;
+    background: rgba(10, 10, 12, 0.95);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    z-index: 300;
+}
+.nav-content { display: flex; justify-content: space-between; align-items: center; height: 60px; }
+.nav-logo { font-size: 1.15rem; font-weight: 700; color: #e4e4e7; }
+
+/* Page */
+.page {
+    padding-top: 100px;
+    padding-bottom: 60px;
+    min-height: 100vh;
+    animation: fadeIn 0.5s ease;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.page-title { font-size: 1.6rem; font-weight: 700; margin-bottom: 8px; }
+.page-meta { font-size: 0.85rem; color: #71717a; margin-bottom: 40px; }
+
+/* Back Link */
+.back-link {
+    display: inline-block;
+    font-size: 0.85rem;
+    color: #71717a;
+    margin-bottom: 16px;
+    transition: color 0.2s;
+}
+.back-link:hover { color: #e4e4e7; }
+
+/* Card */
+.card {
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    border-radius: 0;
+    padding: 28px 0;
+    margin-bottom: 0;
+}
+.card:last-child {
+    border-bottom: none;
+}
+.card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #e4e4e7;
+}
+.card-content {
+    font-size: 0.95rem;
+    line-height: 1.85;
+    color: #b0b0b8;
+}
+
+/* List */
+.list {
+    list-style: none;
+    padding: 0;
+    margin-top: 12px;
+}
+.list li {
+    position: relative;
+    padding-left: 18px;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+    line-height: 1.8;
+    color: #b0b0b8;
+}
+.list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.6em;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #52525a;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .page { padding-top: 80px; }
+    .page-title { font-size: 1.5rem; }
+    .card { padding: 20px 0; }
+}

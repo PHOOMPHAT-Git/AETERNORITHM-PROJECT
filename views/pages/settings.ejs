@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aeternorithm Project</title>
+    <link rel="stylesheet" href="/css/pages/settings.css">
+    <link rel="stylesheet" href="/css/components/scrollbar.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="container nav-content">
+            <a href="/" class="nav-logo">Aeternorithm</a>
+        </div>
+    </nav>
+
+    <main class="page">
+        <div class="container">
+            <h1 class="page-title">Settings</h1>
+            <p class="page-subtitle">Customize your experience</p>
+
+            <div class="auth-error" id="errorMessage" style="display:none;"></div>
+            <div class="auth-success" id="successMessage" style="display:none;"></div>
+
+            <div class="card">
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <span class="setting-label">Hide Email</span>
+                        <span class="setting-desc">Partially hide your email on your profile</span>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="hideEmailToggle" <%= user.settings && user.settings.hideEmail ? 'checked' : '' %>>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="actions-row">
+                <button class="btn btn-outline" id="goBackBtn">Back to Account</button>
+                <button class="btn btn-danger" id="resetBtn">Reset All</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+    (function() {
+        var hideEmailToggle = document.getElementById('hideEmailToggle');
+        var original = { hideEmail: hideEmailToggle.checked };
+
+        function showMsg(id, msg) {
+            var el = document.getElementById(id);
+            el.textContent = msg; el.style.display = 'block';
+            setTimeout(function() { el.style.display = 'none'; }, 4000);
+        }
+
+        async function save() {
+            var s = { hideEmail: hideEmailToggle.checked };
+            if (s.hideEmail === original.hideEmail) return true;
+            try {
+                var res = await fetch('/settings', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(s) });
+                var data = await res.json();
+                if (res.ok && data.success) { original = s; return true; }
+                showMsg('errorMessage', data.message || 'Failed'); return false;
+            } catch(e) { showMsg('errorMessage', 'Error saving'); return false; }
+        }
+
+        document.getElementById('goBackBtn').addEventListener('click', async function() {
+            if (await save()) window.location.href = '/account';
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', async function() {
+            if (!confirm('Reset all settings to default?')) return;
+            this.disabled = true; this.textContent = 'Resetting...';
+            try {
+                var res = await fetch('/settings/reset', { method: 'POST', headers: {'Content-Type':'application/json'} });
+                var data = await res.json();
+                if (res.ok && data.success) {
+                    hideEmailToggle.checked = true;
+                    original = { hideEmail: true };
+                    showMsg('successMessage', 'Settings reset');
+                } else { showMsg('errorMessage', data.message || 'Failed'); }
+            } catch(e) { showMsg('errorMessage', 'Error'); }
+            finally { this.disabled = false; this.textContent = 'Reset All'; }
+        });
+    })();
+    </script>
+    <script src="/js/security.js"></script>
+</body>
+</html>

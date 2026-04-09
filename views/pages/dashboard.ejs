@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Aeternorithm</title>
+    <link rel="stylesheet" href="/css/pages/dashboard.css">
+    <link rel="stylesheet" href="/css/components/scrollbar.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="container nav-content">
+            <a href="/" class="nav-logo">Aeternorithm</a>
+            <div class="nav-menu">
+                <ul class="nav-links">
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/account"><%= user.username %></a></li>
+                    <li><a href="/dashboard" class="active">Dashboard</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="page">
+        <div class="container">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Dashboard</h1>
+                    <p class="page-subtitle">Game data overview</p>
+                </div>
+                <div class="header-actions">
+                    <span class="status-dot" id="refreshStatus"></span>
+                    <button class="btn btn-outline btn-sm" id="refreshBtn">Refresh</button>
+                </div>
+            </div>
+
+            <!-- Stats Summary -->
+            <div class="stats-row" id="statsRow">
+                <div class="stat-card">
+                    <span class="stat-value" id="totalPlayers">-</span>
+                    <span class="stat-label">Total Characters</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value online" id="onlinePlayers">-</span>
+                    <span class="stat-label">Online</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value" id="avgLevel">-</span>
+                    <span class="stat-label">Avg Level</span>
+                </div>
+            </div>
+
+            <!-- Characters Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Characters</h2>
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search by name or username...">
+                </div>
+                <div class="table-wrap">
+                    <table class="data-table" id="charactersTable">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Player</th>
+                                <th>Character</th>
+                                <th>Slot</th>
+                                <th>Level</th>
+                                <th>Nex</th>
+                                <th>Weapon</th>
+                                <th>Arcis</th>
+                                <th>Last Seen</th>
+                            </tr>
+                        </thead>
+                        <tbody id="charactersBody">
+                            <tr><td colspan="9" class="empty-state">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Character Detail Modal -->
+            <div class="modal-overlay" id="modalOverlay">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h3 class="modal-title" id="modalTitle">Character Details</h3>
+                        <button class="modal-close" id="modalClose">&times;</button>
+                    </div>
+                    <div class="modal-body" id="modalBody"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 Aeternorithm Project. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+    (function() {
+        var allCharacters = [];
+
+        function timeAgo(date) {
+            var now = Date.now();
+            var diff = now - new Date(date).getTime();
+            var mins = Math.floor(diff / 60000);
+            if (mins < 1) return 'Just now';
+            if (mins < 60) return mins + 'm ago';
+            var hours = Math.floor(mins / 60);
+            if (hours < 24) return hours + 'h ago';
+            var days = Math.floor(hours / 24);
+            return days + 'd ago';
+        }
+
+        async function loadCharacters() {
+            var btn = document.getElementById('refreshBtn');
+            var dot = document.getElementById('refreshStatus');
+            btn.disabled = true;
+            btn.textContent = 'Loading...';
+            dot.className = 'status-dot loading';
+
+            try {
+                var res = await fetch('/api/game/characters');
+                var data = await res.json();
+                if (data.success) {
+                    allCharacters = data.characters;
+                    renderStats();
+                    renderTable(allCharacters);
+                    dot.className = 'status-dot success';
+                } else {
+                    dot.className = 'status-dot error';
+                }
+            } catch(e) {
+                dot.className = 'status-dot error';
+            }
+            btn.disabled = false;
+            btn.textContent = 'Refresh';
+        }
+
+        function renderStats() {
+            document.getElementById('totalPlayers').textContent = allCharacters.length;
+            var online = allCharacters.filter(function(c) { return c.is_online; }).length;
+            document.getElementById('onlinePlayers').textContent = online;
+            if (allCharacters.length > 0) {
+                var avg = allCharacters.reduce(function(s, c) { return s + (c.level || 1); }, 0) / allCharacters.length;
+                document.getElementById('avgLevel').textContent = Math.round(avg * 10) / 10;
+            } else {
+                document.getElementById('avgLevel').textContent = '-';
+            }
+        }
+
+        function renderTable(chars) {
+            var tbody = document.getElementById('charactersBody');
+            if (chars.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No characters found</td></tr>';
+                return;
+            }
+            tbody.innerHTML = chars.map(function(c) {
+                return '<tr class="clickable-row" data-id="' + c._id + '">' +
+                    '<td><span class="status-badge ' + (c.is_online ? 'online' : 'offline') + '">' + (c.is_online ? 'Online' : 'Offline') + '</span></td>' +
+                    '<td class="player-cell">' + esc(c.roblox_username || 'ID: ' + c.roblox_user_id) + '</td>' +
+                    '<td>' + esc(c.character_name || '-') + '</td>' +
+                    '<td>' + c.slot + '</td>' +
+                    '<td>' + (c.level || 1) + '</td>' +
+                    '<td>' + (c.nex || 0) + '</td>' +
+                    '<td>' + esc(c.current_weapon || '-') + '</td>' +
+                    '<td>' + esc(c.current_arcis || '-') + '</td>' +
+                    '<td class="muted">' + timeAgo(c.last_seen || c.updated_at) + '</td>' +
+                '</tr>';
+            }).join('');
+        }
+
+        function esc(str) {
+            var d = document.createElement('div');
+            d.textContent = str;
+            return d.innerHTML;
+        }
+
+        function showModal(charId) {
+            var c = allCharacters.find(function(ch) { return ch._id === charId; });
+            if (!c) return;
+
+            document.getElementById('modalTitle').textContent =
+                (c.character_name || 'Unknown') + ' (' + (c.roblox_username || 'ID: ' + c.roblox_user_id) + ')';
+
+            var journal = c.journal || {};
+            var body = journal.body || {};
+            var weapons = journal.weapons || {};
+            var arcis = journal.arcis || {};
+            var resistances = journal.resistances || {};
+
+            var html = '<div class="detail-grid">';
+
+            // General Info
+            html += '<div class="detail-section"><h4>General</h4><div class="detail-list">';
+            html += detailRow('Roblox ID', c.roblox_user_id);
+            html += detailRow('Username', c.roblox_username || '-');
+            html += detailRow('Character', c.character_name || '-');
+            html += detailRow('Gender', c.gender || '-');
+            html += detailRow('Age', c.age || 18);
+            html += detailRow('Slot', c.slot);
+            html += detailRow('Status', c.is_online ? '<span class="status-badge online">Online</span>' : '<span class="status-badge offline">Offline</span>');
+            html += '</div></div>';
+
+            // Progression
+            html += '<div class="detail-section"><h4>Progression</h4><div class="detail-list">';
+            html += detailRow('Level', c.level || 1);
+            html += detailRow('Experience', c.experience || 0);
+            html += detailRow('Nex', c.nex || 0);
+            html += detailRow('Bounty', c.bounty || 0);
+            html += detailRow('Attribute Pts', c.attribute_points || 0);
+            html += detailRow('Investment Pts', c.investment_points || 0);
+            html += '</div></div>';
+
+            // Survival
+            html += '<div class="detail-section"><h4>Survival</h4><div class="detail-list">';
+            html += barRow('Hunger', journal.hunger);
+            html += barRow('Water', journal.water);
+            html += barRow('Senses', journal.senses);
+            html += barRow('Armor', journal.armor);
+            html += barRow('Essence', journal.essence);
+            html += barRow('Posture', journal.posture);
+            html += '</div></div>';
+
+            // Body Stats
+            html += '<div class="detail-section"><h4>Body</h4><div class="detail-list">';
+            for (var k in body) {
+                var v = body[k];
+                html += detailRow(k, typeof v === 'object' ? 'Stat: ' + (v.Stats || 0) + ' / Exp: ' + (v.Exp || 0) : v);
+            }
+            html += '</div></div>';
+
+            // Weapons
+            html += '<div class="detail-section"><h4>Weapons</h4><div class="detail-list">';
+            for (var w in weapons) {
+                var wv = weapons[w];
+                html += detailRow(w, typeof wv === 'object' ? 'Stat: ' + (wv.Stats || 0) + ' / Exp: ' + (wv.Exp || 0) : wv);
+            }
+            html += detailRow('Equipped', c.current_weapon || '-');
+            html += '</div></div>';
+
+            // Arcis
+            html += '<div class="detail-section"><h4>Arcis</h4><div class="detail-list">';
+            for (var a in arcis) {
+                var av = arcis[a];
+                html += detailRow(a, typeof av === 'object' ? 'Stat: ' + (av.Stats || 0) + ' / Exp: ' + (av.Exp || 0) : av);
+            }
+            html += detailRow('Active', c.current_arcis || '-');
+            html += '</div></div>';
+
+            // Resistances
+            html += '<div class="detail-section"><h4>Resistances</h4><div class="detail-list">';
+            for (var r in resistances) {
+                html += detailRow(r, resistances[r] || 0);
+            }
+            html += '</div></div>';
+
+            // Talents
+            var talents = c.talents || {};
+            var talentKeys = Object.keys(talents);
+            html += '<div class="detail-section"><h4>Talents</h4><div class="detail-list">';
+            if (talentKeys.length === 0) {
+                html += '<div class="detail-row"><span class="muted">None</span></div>';
+            } else {
+                talentKeys.forEach(function(t) { html += detailRow(t, talents[t] ? 'Active' : 'Inactive'); });
+            }
+            html += '</div></div>';
+
+            html += '</div>';
+
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOverlay').classList.add('active');
+        }
+
+        function detailRow(label, value) {
+            return '<div class="detail-row"><span class="detail-label">' + label + '</span><span class="detail-value">' + value + '</span></div>';
+        }
+
+        function barRow(label, obj) {
+            if (!obj) return detailRow(label, '-');
+            var now = obj.now !== undefined ? obj.now : (obj.Now !== undefined ? obj.Now : 0);
+            var max = obj.max !== undefined ? obj.max : (obj.Max !== undefined ? obj.Max : 100);
+            var pct = max > 0 ? Math.round((now / max) * 100) : 0;
+            var color = pct > 60 ? '#22c55e' : pct > 30 ? '#eab308' : '#ef4444';
+            return '<div class="detail-row"><span class="detail-label">' + label + '</span>' +
+                '<span class="detail-value bar-value"><div class="bar"><div class="bar-fill" style="width:' + pct + '%;background:' + color + '"></div></div>' +
+                '<span class="bar-text">' + Math.round(now) + '/' + max + '</span></span></div>';
+        }
+
+        // Events
+        document.getElementById('refreshBtn').addEventListener('click', loadCharacters);
+
+        document.getElementById('searchInput').addEventListener('input', function() {
+            var q = this.value.toLowerCase();
+            var filtered = allCharacters.filter(function(c) {
+                return (c.roblox_username || '').toLowerCase().includes(q) ||
+                       (c.character_name || '').toLowerCase().includes(q) ||
+                       String(c.roblox_user_id).includes(q);
+            });
+            renderTable(filtered);
+        });
+
+        document.getElementById('charactersBody').addEventListener('click', function(e) {
+            var row = e.target.closest('.clickable-row');
+            if (row) showModal(row.dataset.id);
+        });
+
+        document.getElementById('modalClose').addEventListener('click', function() {
+            document.getElementById('modalOverlay').classList.remove('active');
+        });
+        document.getElementById('modalOverlay').addEventListener('click', function(e) {
+            if (e.target === this) this.classList.remove('active');
+        });
+
+        // Auto refresh every 30s
+        loadCharacters();
+        setInterval(loadCharacters, 30000);
+    })();
+    </script>
+    <script src="/js/security.js"></script>
+</body>
+</html>

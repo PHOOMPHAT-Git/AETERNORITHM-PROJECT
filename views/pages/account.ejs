@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aeternorithm Project</title>
+    <link rel="stylesheet" href="/css/pages/account.css">
+    <link rel="stylesheet" href="/css/components/scrollbar.css">
+    <link rel="stylesheet" href="/css/alert.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container nav-content">
+            <a href="/" class="nav-logo">Aeternorithm</a>
+            <div class="nav-menu">
+                <ul class="nav-links">
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/account" class="active"><%= user.username %></a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="page">
+        <div class="container">
+            <h1 class="page-title">Account</h1>
+            <p class="page-subtitle">Manage your profile and settings</p>
+
+            <!-- Profile Information -->
+            <div class="card">
+                <h2 class="card-title">Profile</h2>
+                <div class="info-list">
+                    <div class="info-row">
+                        <span class="info-label">Username</span>
+                        <span class="info-value"><%= user.username %></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Email</span>
+                        <span class="info-value">
+                            <% let displayEmail = user.email;
+                            if (user.settings && user.settings.hideEmail) {
+                                const atIndex = user.email.indexOf('@');
+                                if (atIndex > 1) {
+                                    displayEmail = user.email.charAt(0) + '•'.repeat(atIndex - 1) + user.email.substring(atIndex);
+                                }
+                            } %>
+                            <%= displayEmail %>
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Member Since</span>
+                        <span class="info-value">
+                            <% const created = user.createdAt || (user._id && user._id.getTimestamp && user._id.getTimestamp()); %>
+                            <%= created ? new Date(created).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '—' %>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Linked Accounts -->
+            <div class="card">
+                <h2 class="card-title">Linked Accounts</h2>
+                <div class="info-list">
+                    <div class="info-row">
+                        <span class="info-label">Roblox</span>
+                        <span class="info-value">
+                            <% if (typeof robloxInfo !== 'undefined' && robloxInfo) { %>
+                                <% if (robloxInfo.displayName && robloxInfo.displayName !== robloxInfo.username) { %>
+                                    <%= robloxInfo.displayName %> (<%= robloxInfo.username %>)
+                                <% } else { %>
+                                    <%= robloxInfo.username %>
+                                <% } %>
+                                <span class="badge badge-success">Verified</span>
+                            <% } else { %>
+                                Not verified
+                            <% } %>
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Discord</span>
+                        <span class="info-value">
+                            <% if (user.discord_user_id) { %>
+                                <%= user.discord_user_id %>
+                                <span class="badge badge-success">Linked</span>
+                            <% } else { %>
+                                Not linked
+                            <% } %>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Token -->
+            <div class="card token-card">
+                <div class="token-info">
+                    <h2 class="card-title">Token</h2>
+                    <p class="card-desc">Use this token for Website Verify in Discord</p>
+                </div>
+                <div class="token-action">
+                    <button class="btn btn-outline btn-sm" onclick="copyToken()" id="copyTokenBtn">Copy Token</button>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <h2 class="card-title">Quick Actions</h2>
+                <div class="actions-list">
+                    <a href="/dashboard" class="action-link">Dashboard</a>
+                    <a href="/settings" class="action-link">Settings</a>
+                    <button class="action-link action-danger" onclick="window.location.href='/logout'">Sign Out</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 Aeternorithm Project. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="/js/alert.js"></script>
+    <script>
+        async function copyToken() {
+            try {
+                await navigator.clipboard.writeText('<%= user.token %>');
+                var btn = document.getElementById('copyTokenBtn');
+                btn.textContent = 'Copied!';
+                setTimeout(function() { btn.textContent = 'Copy'; }, 2000);
+            } catch(e) { toast.error('Failed to copy'); }
+        }
+    </script>
+    <script src="/js/security.js"></script>
+</body>
+</html>

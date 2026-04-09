@@ -1,0 +1,79 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: #0a0a0c;
+    color: #e4e4e7;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.error-page {
+    text-align: center;
+    padding: 2rem;
+    max-width: 500px;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.error-code {
+    font-size: 6rem;
+    font-weight: 700;
+    color: #e4e4e7;
+    line-height: 1;
+    margin-bottom: 16px;
+}
+
+.error-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.error-message {
+    color: #71717a;
+    font-size: 0.95rem;
+    margin-bottom: 32px;
+    line-height: 1.6;
+}
+
+.error-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.btn {
+    display: inline-block;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
+}
+
+.btn-primary { background: #e4e4e7; color: #0a0a0c; }
+.btn-primary:hover { background: #d4d4d8; }
+.btn-outline {
+    border: 1.5px solid rgba(255,255,255,0.1);
+    color: #a1a1aa;
+    background: transparent;
+}
+.btn-outline:hover { border-color: rgba(255,255,255,0.2); color: #e4e4e7; }
+
+@media (max-width: 480px) {
+    .error-code { font-size: 4.5rem; }
+    .error-title { font-size: 1.25rem; }
+    .error-buttons { flex-direction: column; width: 100%; }
+    .btn { width: 100%; text-align: center; }
+}

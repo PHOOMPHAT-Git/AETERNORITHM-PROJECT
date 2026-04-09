@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aeternorithm Project</title>
+    <link rel="stylesheet" href="/css/pages/about.css">
+    <link rel="stylesheet" href="/css/components/scrollbar.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container nav-content">
+            <a href="/" class="nav-logo">Aeternorithm</a>
+            <div class="nav-menu">
+                <ul class="nav-links">
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/about" class="active">About</a></li>
+                </ul>
+            </div>
+            <button class="nav-hamburger" id="hamburger">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="nav-menu-mobile" id="mobileMenu">
+        <ul class="nav-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/about">About</a></li>
+        </ul>
+    </div>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container hero-content">
+            <h1 class="hero-name">About Us</h1>
+            <p class="hero-desc">An independent game studio crafting immersive experiences.</p>
+        </div>
+    </section>
+
+    <!-- Social Links -->
+    <section class="section">
+        <div class="container">
+            <div class="social-buttons">
+                <% if (socials.discord) { %>
+                <a class="social-link" href="<%= socials.discord %>" target="_blank" rel="noopener noreferrer">Discord</a>
+                <% } %>
+                <% if (socials.youtube) { %>
+                <a class="social-link" href="<%= socials.youtube %>" target="_blank" rel="noopener noreferrer">YouTube</a>
+                <% } %>
+                <% if (socials.tiktok) { %>
+                <a class="social-link" href="<%= socials.tiktok %>" target="_blank" rel="noopener noreferrer">TikTok</a>
+                <% } %>
+                <% if (socials.instagram) { %>
+                <a class="social-link" href="<%= socials.instagram %>" target="_blank" rel="noopener noreferrer">Instagram</a>
+                <% } %>
+                <% if (socials.facebook) { %>
+                <a class="social-link" href="<%= socials.facebook %>" target="_blank" rel="noopener noreferrer">Facebook</a>
+                <% } %>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Studio -->
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title">The Studio</h2>
+            <div class="about-text">
+                <p>Aeternorithm Project is an independent game studio dedicated to crafting immersive experiences. We believe in pushing creative boundaries and building worlds that players can lose themselves in.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Our Games -->
+    <section class="section section-alt">
+        <div class="container">
+            <h2 class="section-title">Our Games</h2>
+            <div class="about-text">
+                <p>We develop games across with a focus on storytelling, atmosphere, and community-driven design. Stay tuned for upcoming titles and updates.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- The Team -->
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title">The Team</h2>
+            <div class="about-text">
+                <p>A small team of passionate developers, artists, and designers working together to create memorable gaming experiences.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Service Status -->
+    <section class="section section-alt">
+        <div class="container">
+            <h2 class="section-title">Service Status</h2>
+            <div class="status-grid">
+                <div class="status-card">
+                    <span class="status-label">Website</span>
+                    <div class="status-row">
+                        <span class="status-indicator" id="website-status"></span>
+                        <span class="status-text" id="website-status-text">Checking</span>
+                    </div>
+                </div>
+                <div class="status-card">
+                    <span class="status-label">Discord Bot</span>
+                    <div class="status-row">
+                        <span class="status-indicator" id="bot-status"></span>
+                        <span class="status-text" id="bot-status-text">Checking</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 Aeternorithm Project. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('hamburger').addEventListener('click', function() {
+            this.classList.toggle('active');
+            document.getElementById('mobileMenu').classList.toggle('open');
+            document.body.classList.toggle('menu-open');
+        });
+    </script>
+    <script src="/js/security.js"></script>
+    <script src="/js/status.js"></script>
+</body>
+</html>

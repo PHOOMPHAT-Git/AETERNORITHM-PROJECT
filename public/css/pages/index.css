@@ -1,0 +1,336 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: #0a0a0c;
+    color: #e4e4e7;
+    line-height: 1.6;
+}
+
+@keyframes pageSlideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+body > *:not(.navbar):not(.nav-menu-mobile) {
+    animation: pageSlideUp 0.5s ease forwards;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+body.menu-open {
+    overflow: hidden;
+}
+
+.container {
+    max-width: 750px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* ==================== Navbar ==================== */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: rgba(10, 10, 12, 0.95);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    z-index: 300;
+}
+
+.nav-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 60px;
+}
+
+.nav-logo {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #e4e4e7;
+}
+
+.nav-menu {
+    display: flex;
+    align-items: center;
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 28px;
+    padding: 0;
+}
+
+.nav-divider {
+    width: 1px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 0 28px;
+}
+
+.nav-links a {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #71717a;
+    transition: color 0.2s;
+}
+
+.nav-links a:hover {
+    color: #e4e4e7;
+}
+
+.nav-hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    z-index: 301;
+}
+
+.nav-hamburger span {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: #e4e4e7;
+    border-radius: 2px;
+    transition: all 0.3s ease;
+    transform-origin: center;
+}
+
+.nav-hamburger.active span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+
+.nav-hamburger.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.nav-hamburger.active span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+}
+
+/* Mobile Menu */
+.nav-menu-mobile {
+    display: none;
+}
+
+/* ==================== Hero ==================== */
+.hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding-top: 60px;
+}
+
+.hero-content {
+    text-align: center;
+}
+
+.hero-greeting {
+    font-size: 1rem;
+    color: #71717a;
+    margin-bottom: 8px;
+}
+
+.hero-name {
+    font-size: 3.5rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    margin-bottom: 12px;
+    color: #e4e4e7;
+}
+
+.hero-role {
+    font-size: 1.3rem;
+    font-weight: 500;
+    color: #8b8b94;
+    margin-bottom: 16px;
+}
+
+.hero-desc {
+    font-size: 1rem;
+    color: #71717a;
+    max-width: 480px;
+    margin: 0 auto 32px;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+}
+
+/* ==================== Buttons ==================== */
+.btn {
+    display: inline-block;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: #e4e4e7;
+    color: #0a0a0c;
+    border: none;
+}
+
+.btn-primary:hover {
+    background: #d4d4d8;
+}
+
+.btn-outline {
+    border: 1.5px solid rgba(255, 255, 255, 0.12);
+    color: #a1a1aa;
+    background: transparent;
+}
+
+.btn-outline:hover {
+    border-color: rgba(255, 255, 255, 0.25);
+    color: #e4e4e7;
+}
+
+/* ==================== Sections ==================== */
+.section {
+    padding: 80px 0;
+}
+
+.section-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 40px;
+    color: #e4e4e7;
+}
+
+/* ==================== About ==================== */
+.about-content {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.about-content p {
+    font-size: 1rem;
+    color: #71717a;
+    margin-bottom: 16px;
+    line-height: 1.7;
+}
+
+/* ==================== Footer ==================== */
+.footer {
+    text-align: center;
+    padding: 24px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.footer p {
+    font-size: 0.85rem;
+    color: #52525a;
+}
+
+/* ==================== Responsive ==================== */
+@media (max-width: 768px) {
+    .nav-menu {
+        display: none;
+    }
+
+    .nav-hamburger {
+        display: flex;
+    }
+
+    .nav-menu-mobile {
+        display: flex;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(10, 10, 12, 0.98);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 200;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .nav-menu-mobile.open {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .nav-menu-mobile .nav-links {
+        flex-direction: column;
+        gap: 0;
+        align-items: center;
+        text-align: center;
+    }
+
+    .nav-menu-mobile .nav-links a {
+        font-size: 1.25rem;
+        font-weight: 500;
+        color: #71717a;
+        padding: 14px 0;
+        display: block;
+    }
+
+    .nav-menu-mobile .nav-links a:hover {
+        color: #e4e4e7;
+    }
+
+    .nav-menu-mobile .nav-divider {
+        width: 200px;
+        height: 1px;
+        background: rgba(255, 255, 255, 0.08);
+        margin: 12px 0;
+    }
+
+    .hero-name {
+        font-size: 2.5rem;
+    }
+
+    .hero-role {
+        font-size: 1.1rem;
+    }
+
+    .section {
+        padding: 60px 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-name {
+        font-size: 2rem;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+}

@@ -1,0 +1,157 @@
+/* ============================================================
+   aurora.css — subtle ambient background glow
+   Minimal design: very low opacity, gentle movement
+   ============================================================ */
+
+.aurora-bg {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.aurora {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.5;
+}
+
+/* --- Positions & animation --- */
+
+.aurora-1 {
+    width: 60vw;
+    height: 60vw;
+    top: -30%;
+    left: -15%;
+    animation: aurora-move-1 20s ease-in-out infinite alternate;
+}
+
+.aurora-2 {
+    width: 50vw;
+    height: 50vw;
+    top: 25%;
+    right: -20%;
+    animation: aurora-move-2 25s ease-in-out infinite alternate;
+}
+
+.aurora-3 {
+    width: 45vw;
+    height: 45vw;
+    bottom: -20%;
+    left: 20%;
+    animation: aurora-move-3 30s ease-in-out infinite alternate;
+}
+
+.aurora-4 {
+    width: 35vw;
+    height: 35vw;
+    top: 10%;
+    right: 30%;
+    animation: aurora-move-4 22s ease-in-out infinite alternate;
+}
+
+@keyframes aurora-move-1 {
+    from { transform: translate(0, 0) scale(1); }
+    to   { transform: translate(5%, 8%) scale(1.1); }
+}
+
+@keyframes aurora-move-2 {
+    from { transform: translate(0, 0) scale(1.05); }
+    to   { transform: translate(-6%, 5%) scale(0.95); }
+}
+
+@keyframes aurora-move-3 {
+    from { transform: translate(0, 0) scale(0.95); }
+    to   { transform: translate(4%, -8%) scale(1.1); }
+}
+
+@keyframes aurora-move-4 {
+    from { transform: translate(0, 0) scale(1); }
+    to   { transform: translate(-5%, 6%) scale(1.05); }
+}
+
+/* ============================================================
+   COLOR THEMES — all very subtle, blending into dark bg
+   ============================================================ */
+
+/* --- index: soft indigo · muted blue --- */
+.aurora-bg.theme-index .aurora-1 { background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.12) 0%, transparent 70%); }
+.aurora-bg.theme-index .aurora-2 { background: radial-gradient(ellipse at center, rgba(79, 70, 229, 0.08) 0%, transparent 70%); }
+.aurora-bg.theme-index .aurora-3 { background: radial-gradient(ellipse at center, rgba(139, 156, 247, 0.06) 0%, transparent 70%); }
+.aurora-bg.theme-index .aurora-4 { background: radial-gradient(ellipse at center, rgba(67, 56, 202, 0.07) 0%, transparent 70%); }
+
+/* --- login: muted rose · cool purple --- */
+.aurora-bg.theme-login .aurora-1 { background: radial-gradient(ellipse at center, rgba(139, 156, 247, 0.10) 0%, transparent 70%); }
+.aurora-bg.theme-login .aurora-2 { background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.08) 0%, transparent 70%); }
+.aurora-bg.theme-login .aurora-3 { background: radial-gradient(ellipse at center, rgba(129, 140, 248, 0.06) 0%, transparent 70%); }
+.aurora-bg.theme-login .aurora-4 { background: radial-gradient(ellipse at center, rgba(79, 70, 229, 0.07) 0%, transparent 70%); }
+
+/* --- register: cool teal-blue --- */
+.aurora-bg.theme-register .aurora-1 { background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.10) 0%, transparent 70%); }
+.aurora-bg.theme-register .aurora-2 { background: radial-gradient(ellipse at center, rgba(56, 189, 248, 0.07) 0%, transparent 70%); }
+.aurora-bg.theme-register .aurora-3 { background: radial-gradient(ellipse at center, rgba(139, 156, 247, 0.06) 0%, transparent 70%); }
+.aurora-bg.theme-register .aurora-4 { background: radial-gradient(ellipse at center, rgba(79, 70, 229, 0.08) 0%, transparent 70%); }
+
+/* --- about: soft warm blue --- */
+.aurora-bg.theme-about .aurora-1 { background: radial-gradient(ellipse at center, rgba(139, 156, 247, 0.10) 0%, transparent 70%); }
+.aurora-bg.theme-about .aurora-2 { background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.08) 0%, transparent 70%); }
+.aurora-bg.theme-about .aurora-3 { background: radial-gradient(ellipse at center, rgba(129, 140, 248, 0.06) 0%, transparent 70%); }
+.aurora-bg.theme-about .aurora-4 { background: radial-gradient(ellipse at center, rgba(79, 70, 229, 0.07) 0%, transparent 70%); }
+
+/* --- account: deep blue --- */
+.aurora-bg.theme-account .aurora-1 { background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.10) 0%, transparent 70%); }
+.aurora-bg.theme-account .aurora-2 { background: radial-gradient(ellipse at center, rgba(79, 70, 229, 0.08) 0%, transparent 70%); }
+.aurora-bg.theme-account .aurora-3 { background: radial-gradient(ellipse at center, rgba(56, 189, 248, 0.05) 0%, transparent 70%); }
+.aurora-bg.theme-account .aurora-4 { background: radial-gradient(ellipse at center, rgba(139, 156, 247, 0.06) 0%, transparent 70%); }
+
+/* --- friends: soft violet --- */
+.aurora-bg.theme-friends .aurora-1 { background: radial-gradient(ellipse at center, rgba(139, 156, 247, 0.10) 0%, transparent 70%); }
+.aurora-bg.theme-friends .aurora-2 { background: radial-gradient(ellipse at center, rgba(129, 140, 248, 0.07) 0%, transparent 70%); }
+.aurora-bg.theme-friends .aurora-3 { background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.06) 0%, transparent 70%); }
+.aurora-bg.theme-friends .aurora-4 { background: radial-gradient(ellipse at center, rgba(79, 70, 229, 0.07) 0%, transparent 70%); }
+
+/* --- settings: neutral cool --- */
+.aurora-bg.theme-settings .aurora-1 { background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.07) 0%, transparent 70%); }
+.aurora-bg.theme-settings .aurora-2 { background: radial-gradient(ellipse at center, rgba(79, 70, 229, 0.05) 0%, transparent 70%); }
+.aurora-bg.theme-settings .aurora-3 { background: radial-gradient(ellipse at center, rgba(139, 156, 247, 0.04) 0%, transparent 70%); }
+.aurora-bg.theme-settings .aurora-4 { background: radial-gradient(ellipse at center, rgba(67, 56, 202, 0.05) 0%, transparent 70%); }
+
+/* --- terms: muted warm --- */
+.aurora-bg.theme-terms .aurora-1 { background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.08) 0%, transparent 70%); }
+.aurora-bg.theme-terms .aurora-2 { background: radial-gradient(ellipse at center, rgba(139, 156, 247, 0.06) 0%, transparent 70%); }
+.aurora-bg.theme-terms .aurora-3 { background: radial-gradient(ellipse at center, rgba(79, 70, 229, 0.05) 0%, transparent 70%); }
+.aurora-bg.theme-terms .aurora-4 { background: radial-gradient(ellipse at center, rgba(129, 140, 248, 0.05) 0%, transparent 70%); }
+
+/* --- privacy: subtle green-blue --- */
+.aurora-bg.theme-privacy .aurora-1 { background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.08) 0%, transparent 70%); }
+.aurora-bg.theme-privacy .aurora-2 { background: radial-gradient(ellipse at center, rgba(56, 189, 248, 0.06) 0%, transparent 70%); }
+.aurora-bg.theme-privacy .aurora-3 { background: radial-gradient(ellipse at center, rgba(139, 156, 247, 0.05) 0%, transparent 70%); }
+.aurora-bg.theme-privacy .aurora-4 { background: radial-gradient(ellipse at center, rgba(79, 70, 229, 0.06) 0%, transparent 70%); }
+
+/* --- error: subtle warm red --- */
+.aurora-bg.theme-error .aurora-1 { background: radial-gradient(ellipse at center, rgba(239, 68, 68, 0.10) 0%, transparent 70%); }
+.aurora-bg.theme-error .aurora-2 { background: radial-gradient(ellipse at center, rgba(220, 38, 38, 0.07) 0%, transparent 70%); }
+.aurora-bg.theme-error .aurora-3 { background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.05) 0%, transparent 70%); }
+.aurora-bg.theme-error .aurora-4 { background: radial-gradient(ellipse at center, rgba(185, 28, 28, 0.06) 0%, transparent 70%); }
+
+/* --- roblox-verify: subtle green --- */
+.aurora-bg.theme-roblox-verify .aurora-1 { background: radial-gradient(ellipse at center, rgba(34, 197, 94, 0.08) 0%, transparent 70%); }
+.aurora-bg.theme-roblox-verify .aurora-2 { background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.06) 0%, transparent 70%); }
+.aurora-bg.theme-roblox-verify .aurora-3 { background: radial-gradient(ellipse at center, rgba(56, 189, 248, 0.05) 0%, transparent 70%); }
+.aurora-bg.theme-roblox-verify .aurora-4 { background: radial-gradient(ellipse at center, rgba(139, 156, 247, 0.05) 0%, transparent 70%); }
+
+/* --- ticket: soft indigo --- */
+.aurora-bg.theme-ticket .aurora-1 { background: radial-gradient(ellipse at center, rgba(139, 156, 247, 0.10) 0%, transparent 70%); }
+.aurora-bg.theme-ticket .aurora-2 { background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.07) 0%, transparent 70%); }
+.aurora-bg.theme-ticket .aurora-3 { background: radial-gradient(ellipse at center, rgba(79, 70, 229, 0.06) 0%, transparent 70%); }
+.aurora-bg.theme-ticket .aurora-4 { background: radial-gradient(ellipse at center, rgba(129, 140, 248, 0.06) 0%, transparent 70%); }
+
+/* --- Mobile --- */
+@media (max-width: 768px) {
+    .aurora-1 { width: 120vw; height: 120vw; }
+    .aurora-2 { width: 100vw; height: 100vw; }
+    .aurora-3 { width: 80vw;  height: 80vw;  }
+    .aurora-4 { width: 70vw;  height: 70vw;  }
+}

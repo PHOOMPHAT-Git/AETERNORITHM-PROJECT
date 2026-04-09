@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aeternorithm Project</title>
+    <link rel="stylesheet" href="/css/pages/register.css">
+    <link rel="stylesheet" href="/css/components/scrollbar.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container nav-content">
+            <a href="/" class="nav-logo">Aeternorithm</a>
+        </div>
+    </nav>
+
+    <!-- Auth -->
+    <section class="auth-page">
+        <div class="auth-card">
+            <h1 class="auth-title">Create account</h1>
+            <p class="auth-subtitle">Join the Aeternorithm community</p>
+
+            <div class="auth-error" id="errorMessage" style="display:none;"></div>
+
+            <form class="auth-form" id="registerForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" placeholder="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" placeholder="you@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;" required minlength="6">
+                </div>
+                <button type="submit" class="btn btn-primary auth-btn">Sign Up</button>
+            </form>
+
+            <p class="auth-footer">
+                Already have an account? <a href="/login">Sign in</a>
+            </p>
+            <p class="auth-terms">
+                By signing up, you agree to our <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a>.
+            </p>
+        </div>
+    </section>
+
+    <script>
+    (function() {
+        function showError(msg) {
+            var el = document.getElementById('errorMessage');
+            el.textContent = msg;
+            el.style.display = 'block';
+            setTimeout(function() { el.style.display = 'none'; }, 5000);
+        }
+
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            var username = document.getElementById('username').value;
+            var email = document.getElementById('email').value;
+            var password = document.getElementById('password').value;
+            var confirmPassword = document.getElementById('confirmPassword').value;
+            var btn = this.querySelector('button[type="submit"]');
+
+            if (password !== confirmPassword) { showError('Passwords do not match'); return; }
+            if (password.length < 6) { showError('Password must be at least 6 characters'); return; }
+
+            btn.disabled = true;
+            btn.textContent = 'Creating account...';
+
+            try {
+                var response = await fetch('/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: username, email: email, password: password, confirmPassword: confirmPassword })
+                });
+                var data = await response.json();
+
+                if (!response.ok) {
+                    showError(data.error || 'Registration failed');
+                    return;
+                }
+                if (data.success && data.redirect) {
+                    window.location.href = data.redirect;
+                }
+            } catch (err) {
+                showError('Something went wrong. Please try again.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Sign Up';
+            }
+        });
+    })();
+    </script>
+    <script src="/js/security.js"></script>
+</body>
+</html>

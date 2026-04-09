@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aeternorithm Project</title>
+    <link rel="stylesheet" href="/css/pages/index.css">
+    <link rel="stylesheet" href="/css/components/scrollbar.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container nav-content">
+            <a href="/" class="nav-logo">Aeternorithm</a>
+            <div class="nav-menu">
+                <ul class="nav-links">
+                    <li><a href="/about">About</a></li>
+                    <li><a href="/terms">Terms</a></li>
+                    <li><a href="/privacy">Privacy</a></li>
+                </ul>
+                <div class="nav-divider"></div>
+                <ul class="nav-links nav-auth">
+                    <% if (user) { %>
+                        <li><a href="/account"><%= user.username %></a></li>
+                    <% } else { %>
+                        <li><a href="/login">Login</a></li>
+                        <li><a href="/register">Register</a></li>
+                    <% } %>
+                </ul>
+            </div>
+            <button class="nav-hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="nav-menu-mobile" id="mobileMenu">
+        <ul class="nav-links">
+            <li><a href="/about">About</a></li>
+            <li><a href="/terms">Terms</a></li>
+            <li><a href="/privacy">Privacy</a></li>
+        </ul>
+        <div class="nav-divider"></div>
+        <ul class="nav-links nav-auth">
+            <% if (user) { %>
+                <li><a href="/account"><%= user.username %></a></li>
+            <% } else { %>
+                <li><a href="/login">Login</a></li>
+                <li><a href="/register">Register</a></li>
+            <% } %>
+        </ul>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container hero-content">
+            <p class="hero-greeting">Welcome to</p>
+            <h1 class="hero-name">AETERNORITHM</h1>
+            <p class="hero-role">Game Studio</p>
+            <p class="hero-desc">We craft immersive gaming experiences with passion and precision.</p>
+            <div class="hero-buttons">
+                <a href="/about" class="btn btn-primary">Learn More</a>
+                <% if (!user) { %>
+                    <a href="/login" class="btn btn-outline">Sign In</a>
+                <% } else { %>
+                    <a href="/account" class="btn btn-outline">My Account</a>
+                <% } %>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="section" id="about">
+        <div class="container">
+            <h2 class="section-title">About Us</h2>
+            <div class="about-content">
+                <p>Aeternorithm Project is an independent game studio dedicated to crafting immersive experiences. We believe in pushing creative boundaries and building worlds that players can lose themselves in.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 Aeternorithm Project. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('hamburger').addEventListener('click', function() {
+            this.classList.toggle('active');
+            document.getElementById('mobileMenu').classList.toggle('open');
+            document.body.classList.toggle('menu-open');
+        });
+        document.querySelectorAll('.nav-menu-mobile a').forEach(function(a) {
+            a.addEventListener('click', function() {
+                document.getElementById('hamburger').classList.remove('active');
+                document.getElementById('mobileMenu').classList.remove('open');
+                document.body.classList.remove('menu-open');
+            });
+        });
+    </script>
+    <script src="/js/security.js"></script>
+</body>
+</html>
