@@ -24,7 +24,7 @@ npx nodemon app.js
 ### Initial Setup (First Time)
 ```bash
 git init
-git remote add origin https://github.com/PHOOMPHAT-Git/NEW-DISAPPEAR-WEBCODE.git
+git remote add origin https://github.com/PHOOMPHAT-Git/AETERNORITHM-WEBCODE.git
 ```
 
 ### Check Status
