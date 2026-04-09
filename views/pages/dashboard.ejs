@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Aeternorithm</title>
+    <title>Aeternorithm Project</title>
     <link rel="stylesheet" href="/css/pages/dashboard.css">
     <link rel="stylesheet" href="/css/components/scrollbar.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -30,7 +30,7 @@
             <div class="page-header">
                 <div>
                     <h1 class="page-title">Dashboard</h1>
-                    <p class="page-subtitle">Game data overview</p>
+                    <p class="page-subtitle">Player data overview</p>
                 </div>
                 <div class="header-actions">
                     <span class="status-dot" id="refreshStatus"></span>
@@ -42,51 +42,49 @@
             <div class="stats-row" id="statsRow">
                 <div class="stat-card">
                     <span class="stat-value" id="totalPlayers">-</span>
-                    <span class="stat-label">Total Characters</span>
+                    <span class="stat-label">Total Players</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-value online" id="onlinePlayers">-</span>
                     <span class="stat-label">Online</span>
                 </div>
                 <div class="stat-card">
-                    <span class="stat-value" id="avgLevel">-</span>
-                    <span class="stat-label">Avg Level</span>
+                    <span class="stat-value" id="totalCharacters">-</span>
+                    <span class="stat-label">Total Characters</span>
                 </div>
             </div>
 
-            <!-- Characters Table -->
+            <!-- Players Table -->
             <div class="card">
                 <div class="card-header">
-                    <h2 class="card-title">Characters</h2>
-                    <input type="text" class="search-input" id="searchInput" placeholder="Search by name or username...">
+                    <h2 class="card-title">Players</h2>
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search by username...">
                 </div>
                 <div class="table-wrap">
-                    <table class="data-table" id="charactersTable">
+                    <table class="data-table" id="playersTable">
                         <thead>
                             <tr>
                                 <th>Status</th>
                                 <th>Player</th>
-                                <th>Character</th>
-                                <th>Slot</th>
+                                <th>Active Slot</th>
+                                <th>Slots</th>
+                                <th>Active Character</th>
                                 <th>Level</th>
-                                <th>Nex</th>
-                                <th>Weapon</th>
-                                <th>Arcis</th>
                                 <th>Last Seen</th>
                             </tr>
                         </thead>
-                        <tbody id="charactersBody">
-                            <tr><td colspan="9" class="empty-state">Loading...</td></tr>
+                        <tbody id="playersBody">
+                            <tr><td colspan="7" class="empty-state">Loading...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Character Detail Modal -->
+            <!-- Player Detail Modal -->
             <div class="modal-overlay" id="modalOverlay">
                 <div class="modal">
                     <div class="modal-header">
-                        <h3 class="modal-title" id="modalTitle">Character Details</h3>
+                        <h3 class="modal-title" id="modalTitle">Player Details</h3>
                         <button class="modal-close" id="modalClose">&times;</button>
                     </div>
                     <div class="modal-body" id="modalBody"></div>
@@ -103,7 +101,7 @@
 
     <script>
     (function() {
-        var allCharacters = [];
+        var allPlayers = [];
 
         function timeAgo(date) {
             var now = Date.now();
@@ -117,7 +115,18 @@
             return days + 'd ago';
         }
 
-        async function loadCharacters() {
+        function getActiveChar(p) {
+            var slot = String(p.selected_slot || 1);
+            var chars = p.characters || {};
+            return chars[slot] || null;
+        }
+
+        function countChars(p) {
+            var chars = p.characters || {};
+            return Object.keys(chars).length;
+        }
+
+        async function loadPlayers() {
             var btn = document.getElementById('refreshBtn');
             var dot = document.getElementById('refreshStatus');
             btn.disabled = true;
@@ -125,12 +134,12 @@
             dot.className = 'status-dot loading';
 
             try {
-                var res = await fetch('/api/game/characters');
+                var res = await fetch('/api/game/players');
                 var data = await res.json();
                 if (data.success) {
-                    allCharacters = data.characters;
+                    allPlayers = data.players;
                     renderStats();
-                    renderTable(allCharacters);
+                    renderTable(allPlayers);
                     dot.className = 'status-dot success';
                 } else {
                     dot.className = 'status-dot error';
@@ -143,34 +152,33 @@
         }
 
         function renderStats() {
-            document.getElementById('totalPlayers').textContent = allCharacters.length;
-            var online = allCharacters.filter(function(c) { return c.is_online; }).length;
+            document.getElementById('totalPlayers').textContent = allPlayers.length;
+            var online = allPlayers.filter(function(p) { return p.is_online; }).length;
             document.getElementById('onlinePlayers').textContent = online;
-            if (allCharacters.length > 0) {
-                var avg = allCharacters.reduce(function(s, c) { return s + (c.level || 1); }, 0) / allCharacters.length;
-                document.getElementById('avgLevel').textContent = Math.round(avg * 10) / 10;
-            } else {
-                document.getElementById('avgLevel').textContent = '-';
-            }
+            var totalChars = allPlayers.reduce(function(s, p) { return s + countChars(p); }, 0);
+            document.getElementById('totalCharacters').textContent = totalChars;
         }
 
-        function renderTable(chars) {
-            var tbody = document.getElementById('charactersBody');
-            if (chars.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No characters found</td></tr>';
+        function renderTable(players) {
+            var tbody = document.getElementById('playersBody');
+            if (players.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No players found</td></tr>';
                 return;
             }
-            tbody.innerHTML = chars.map(function(c) {
-                return '<tr class="clickable-row" data-id="' + c._id + '">' +
-                    '<td><span class="status-badge ' + (c.is_online ? 'online' : 'offline') + '">' + (c.is_online ? 'Online' : 'Offline') + '</span></td>' +
-                    '<td class="player-cell">' + esc(c.roblox_username || 'ID: ' + c.roblox_user_id) + '</td>' +
-                    '<td>' + esc(c.character_name || '-') + '</td>' +
-                    '<td>' + c.slot + '</td>' +
-                    '<td>' + (c.level || 1) + '</td>' +
-                    '<td>' + (c.nex || 0) + '</td>' +
-                    '<td>' + esc(c.current_weapon || '-') + '</td>' +
-                    '<td>' + esc(c.current_arcis || '-') + '</td>' +
-                    '<td class="muted">' + timeAgo(c.last_seen || c.updated_at) + '</td>' +
+            tbody.innerHTML = players.map(function(p) {
+                var activeChar = getActiveChar(p);
+                var charName = activeChar ? (activeChar.character_name || '-') : '-';
+                var level = activeChar ? (activeChar.level || 1) : '-';
+                var slotCount = (p.created_slots || []).length;
+
+                return '<tr class="clickable-row" data-id="' + p._id + '">' +
+                    '<td><span class="status-badge ' + (p.is_online ? 'online' : 'offline') + '">' + (p.is_online ? 'Online' : 'Offline') + '</span></td>' +
+                    '<td class="player-cell">' + esc(p.roblox_username || 'ID: ' + p.roblox_user_id) + '</td>' +
+                    '<td>' + (p.selected_slot || 1) + '</td>' +
+                    '<td>' + slotCount + '</td>' +
+                    '<td>' + esc(charName) + '</td>' +
+                    '<td>' + level + '</td>' +
+                    '<td class="muted">' + timeAgo(p.last_seen || p.updated_at) + '</td>' +
                 '</tr>';
             }).join('');
         }
@@ -181,95 +189,105 @@
             return d.innerHTML;
         }
 
-        function showModal(charId) {
-            var c = allCharacters.find(function(ch) { return ch._id === charId; });
-            if (!c) return;
+        function showModal(playerId) {
+            var p = allPlayers.find(function(pl) { return pl._id === playerId; });
+            if (!p) return;
 
             document.getElementById('modalTitle').textContent =
-                (c.character_name || 'Unknown') + ' (' + (c.roblox_username || 'ID: ' + c.roblox_user_id) + ')';
-
-            var journal = c.journal || {};
-            var body = journal.body || {};
-            var weapons = journal.weapons || {};
-            var arcis = journal.arcis || {};
-            var resistances = journal.resistances || {};
+                (p.roblox_username || 'ID: ' + p.roblox_user_id) + ' - Player Details';
 
             var html = '<div class="detail-grid">';
 
-            // General Info
-            html += '<div class="detail-section"><h4>General</h4><div class="detail-list">';
-            html += detailRow('Roblox ID', c.roblox_user_id);
-            html += detailRow('Username', c.roblox_username || '-');
-            html += detailRow('Character', c.character_name || '-');
-            html += detailRow('Gender', c.gender || '-');
-            html += detailRow('Age', c.age || 18);
-            html += detailRow('Slot', c.slot);
-            html += detailRow('Status', c.is_online ? '<span class="status-badge online">Online</span>' : '<span class="status-badge offline">Offline</span>');
+            // Player Info
+            html += '<div class="detail-section"><h4>Player Info</h4><div class="detail-list">';
+            html += detailRow('Roblox ID', p.roblox_user_id);
+            html += detailRow('Username', p.roblox_username || '-');
+            html += detailRow('Status', p.is_online ? '<span class="status-badge online">Online</span>' : '<span class="status-badge offline">Offline</span>');
+            html += detailRow('Selected Slot', p.selected_slot || 1);
+            html += detailRow('Created Slots', (p.created_slots || []).join(', '));
+            html += detailRow('Last Seen', new Date(p.last_seen || p.updated_at).toLocaleString());
             html += '</div></div>';
 
-            // Progression
-            html += '<div class="detail-section"><h4>Progression</h4><div class="detail-list">';
-            html += detailRow('Level', c.level || 1);
-            html += detailRow('Experience', c.experience || 0);
-            html += detailRow('Nex', c.nex || 0);
-            html += detailRow('Bounty', c.bounty || 0);
-            html += detailRow('Attribute Pts', c.attribute_points || 0);
-            html += detailRow('Investment Pts', c.investment_points || 0);
-            html += '</div></div>';
+            // Character Slots
+            var chars = p.characters || {};
+            var slots = Object.keys(chars).sort();
 
-            // Survival
-            html += '<div class="detail-section"><h4>Survival</h4><div class="detail-list">';
-            html += barRow('Hunger', journal.hunger);
-            html += barRow('Water', journal.water);
-            html += barRow('Senses', journal.senses);
-            html += barRow('Armor', journal.armor);
-            html += barRow('Essence', journal.essence);
-            html += barRow('Posture', journal.posture);
-            html += '</div></div>';
+            for (var i = 0; i < slots.length; i++) {
+                var slotNum = slots[i];
+                var c = chars[slotNum];
+                var isActive = String(p.selected_slot) === slotNum;
+                var slotLabel = 'Slot ' + slotNum + (isActive ? ' (Active)' : '');
 
-            // Body Stats
-            html += '<div class="detail-section"><h4>Body</h4><div class="detail-list">';
-            for (var k in body) {
-                var v = body[k];
-                html += detailRow(k, typeof v === 'object' ? 'Stat: ' + (v.Stats || 0) + ' / Exp: ' + (v.Exp || 0) : v);
+                html += '<div class="detail-section"><h4>' + esc(slotLabel) + ' - ' + esc(c.character_name || 'Unnamed') + '</h4><div class="detail-list">';
+
+                // General
+                html += detailRow('Name', c.character_name || '-');
+                html += detailRow('Gender', c.gender || '-');
+                html += detailRow('Age', c.age || 18);
+
+                // Progression
+                html += detailRow('Level', c.level || 1);
+                html += detailRow('Experience', c.experience || 0);
+                html += detailRow('Nex', c.nex || 0);
+                html += detailRow('Bounty', c.bounty || 0);
+                html += detailRow('Attribute Pts', c.attribute_points || 0);
+                html += detailRow('Investment Pts', c.investment_points || 0);
+
+                // Equipment
+                html += detailRow('Weapon', c.current_weapon || '-');
+                html += detailRow('Arcis', c.current_arcis || '-');
+
+                // Survival (from journal)
+                var journal = c.journal || {};
+                html += barRow('Hunger', journal.Hunger);
+                html += barRow('Water', journal.Water);
+                html += barRow('Senses', journal.Senses);
+                html += barRow('Armor', journal.Armor);
+                html += barRow('Essence', journal.Essence);
+                html += barRow('Posture', journal.Posture);
+
+                // Body Stats
+                var body = journal.Body || {};
+                for (var k in body) {
+                    var v = body[k];
+                    html += detailRow(k, typeof v === 'object' ? 'Stat: ' + (v.Stats || 0) + ' / Exp: ' + (v.Exp || 0) : v);
+                }
+
+                // Weapons
+                var weapons = journal.Weapons || {};
+                for (var w in weapons) {
+                    var wv = weapons[w];
+                    html += detailRow(w + ' Weapon', typeof wv === 'object' ? 'Stat: ' + (wv.Stats || 0) + ' / Exp: ' + (wv.Exp || 0) : wv);
+                }
+
+                // Arcis
+                var arcis = journal.Arcis || {};
+                for (var a in arcis) {
+                    var av = arcis[a];
+                    html += detailRow(a, typeof av === 'object' ? 'Stat: ' + (av.Stats || 0) + ' / Exp: ' + (av.Exp || 0) : av);
+                }
+
+                // Resistances
+                var resistances = journal.Resistances || {};
+                for (var r in resistances) {
+                    html += detailRow(r + ' Resist', resistances[r] || 0);
+                }
+
+                // Talents
+                var talents = c.talents || {};
+                var talentKeys = Object.keys(talents);
+                if (talentKeys.length > 0) {
+                    talentKeys.forEach(function(t) { html += detailRow(t, talents[t] ? 'Active' : 'Inactive'); });
+                }
+
+                html += '</div></div>';
             }
-            html += '</div></div>';
 
-            // Weapons
-            html += '<div class="detail-section"><h4>Weapons</h4><div class="detail-list">';
-            for (var w in weapons) {
-                var wv = weapons[w];
-                html += detailRow(w, typeof wv === 'object' ? 'Stat: ' + (wv.Stats || 0) + ' / Exp: ' + (wv.Exp || 0) : wv);
+            if (slots.length === 0) {
+                html += '<div class="detail-section"><h4>Characters</h4><div class="detail-list">';
+                html += '<div class="detail-row"><span class="muted">No character data</span></div>';
+                html += '</div></div>';
             }
-            html += detailRow('Equipped', c.current_weapon || '-');
-            html += '</div></div>';
-
-            // Arcis
-            html += '<div class="detail-section"><h4>Arcis</h4><div class="detail-list">';
-            for (var a in arcis) {
-                var av = arcis[a];
-                html += detailRow(a, typeof av === 'object' ? 'Stat: ' + (av.Stats || 0) + ' / Exp: ' + (av.Exp || 0) : av);
-            }
-            html += detailRow('Active', c.current_arcis || '-');
-            html += '</div></div>';
-
-            // Resistances
-            html += '<div class="detail-section"><h4>Resistances</h4><div class="detail-list">';
-            for (var r in resistances) {
-                html += detailRow(r, resistances[r] || 0);
-            }
-            html += '</div></div>';
-
-            // Talents
-            var talents = c.talents || {};
-            var talentKeys = Object.keys(talents);
-            html += '<div class="detail-section"><h4>Talents</h4><div class="detail-list">';
-            if (talentKeys.length === 0) {
-                html += '<div class="detail-row"><span class="muted">None</span></div>';
-            } else {
-                talentKeys.forEach(function(t) { html += detailRow(t, talents[t] ? 'Active' : 'Inactive'); });
-            }
-            html += '</div></div>';
 
             html += '</div>';
 
@@ -293,19 +311,18 @@
         }
 
         // Events
-        document.getElementById('refreshBtn').addEventListener('click', loadCharacters);
+        document.getElementById('refreshBtn').addEventListener('click', loadPlayers);
 
         document.getElementById('searchInput').addEventListener('input', function() {
             var q = this.value.toLowerCase();
-            var filtered = allCharacters.filter(function(c) {
-                return (c.roblox_username || '').toLowerCase().includes(q) ||
-                       (c.character_name || '').toLowerCase().includes(q) ||
-                       String(c.roblox_user_id).includes(q);
+            var filtered = allPlayers.filter(function(p) {
+                return (p.roblox_username || '').toLowerCase().includes(q) ||
+                       String(p.roblox_user_id).includes(q);
             });
             renderTable(filtered);
         });
 
-        document.getElementById('charactersBody').addEventListener('click', function(e) {
+        document.getElementById('playersBody').addEventListener('click', function(e) {
             var row = e.target.closest('.clickable-row');
             if (row) showModal(row.dataset.id);
         });
@@ -318,8 +335,8 @@
         });
 
         // Auto refresh every 30s
-        loadCharacters();
-        setInterval(loadCharacters, 30000);
+        loadPlayers();
+        setInterval(loadPlayers, 30000);
     })();
     </script>
     <script src="/js/security.js"></script>
