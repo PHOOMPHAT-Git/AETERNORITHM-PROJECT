@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const { getRobloxVerifyModel } = require('../models/RobloxVerify');
+const GameCharacter = require('../models/GameData');
 
 router.get('/', async (req, res) => {
     if (!req.session.user) {
@@ -48,7 +49,15 @@ router.get('/', async (req, res) => {
             }
         }
 
-        res.render('account', { user, robloxInfo });
+        let characters = [];
+        if (robloxUserId) {
+            characters = await GameCharacter.find({ roblox_user_id: robloxUserId })
+                .sort({ slot: 1 })
+                .lean()
+                .catch(() => []);
+        }
+
+        res.render('account', { user, robloxInfo, characters });
     } catch (error) {
         console.error('Error fetching user:', error);
         res.status(500).send('An error occurred');
