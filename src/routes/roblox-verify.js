@@ -6,13 +6,11 @@ const User = require('../models/User');
 
 const ROBLOX_CLIENT_ID = process.env.ROBLOX_CLIENT_ID;
 const ROBLOX_CLIENT_SECRET = process.env.ROBLOX_CLIENT_SECRET;
-const ROBLOX_REDIRECT_URI = process.env.ROBLOX_REDIRECT_URI || 'https://disappear.world/roblox/callback';
-const WEBSITE_URL = process.env.WEBSITE_URL || 'https://disappear.world';
+const ROBLOX_REDIRECT_URI = process.env.ROBLOX_REDIRECT_URI || 'https://aeternorithm-project-production.up.railway.app/roblox/callback';
+const WEBSITE_URL = process.env.WEBSITE_URL || 'https://aeternorithm-project-production.up.railway.app';
 const BOT_API_URL = process.env.BOT_API_URL || '';
 const BOT_API_SECRET = process.env.BOT_API_SECRET || '';
 
-// Helper function to assign Discord role via bot API
-// Note: This is optional - Bot can also poll /pending-roles endpoint instead
 async function assignDiscordRole(discordUserId, guildId) {
     if (!BOT_API_URL || !BOT_API_SECRET) {
         console.log('[Roblox OAuth] BOT_API_URL not configured - bot will use polling instead');
