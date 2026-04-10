@@ -31,7 +31,6 @@ const robloxVerifySchema = new mongoose.Schema({
     }
 });
 
-// Use Discord database connection so Bot and Website share the same data
 let cachedModel = null;
 function getRobloxVerifyModel() {
     if (cachedModel) return cachedModel;

@@ -6,7 +6,6 @@ const PlayerDataSchema = new mongoose.Schema({
     selected_slot: { type: Number, default: 1 },
     created_slots: { type: [Number], default: [1] },
     settings: { type: Object, default: {} },
-    characters: { type: Object, default: {} }, // { "1": { character data }, "2": { ... } }
     is_online: { type: Boolean, default: false },
     last_seen: { type: Date, default: Date.now },
     updated_at: { type: Date, default: Date.now }

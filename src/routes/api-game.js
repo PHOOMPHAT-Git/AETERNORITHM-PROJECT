@@ -34,7 +34,6 @@ router.post('/player/batch', verifyGameSecret, async (req, res) => {
                         selected_slot: p.selected_slot || 1,
                         created_slots: p.created_slots || [1],
                         settings: p.settings || {},
-                        characters: p.characters || {},
                         is_online: true,
                         last_seen: new Date(),
                         updated_at: new Date()
