@@ -98,13 +98,15 @@ router.get('/callback', async (req, res) => {
                 username: discordUser.username,
                 email: discordUser.email || `${discordUser.id}@discord.user`,
                 discord_user_id: discordUser.id,
-                token: userToken
+                token: userToken,
+                website_linked_at: new Date()
             });
 
             await user.save();
             console.log(`New user registered via Discord: ${discordUser.username} (${discordUser.id})`);
         } else {
             if (discordUser.email) user.email = discordUser.email;
+            if (!user.website_linked_at) user.website_linked_at = new Date();
             user.updated_at = Date.now();
             await user.save();
         }
