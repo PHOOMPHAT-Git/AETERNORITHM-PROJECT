@@ -6,8 +6,8 @@ const User = require('../models/User');
 
 const ROBLOX_CLIENT_ID = process.env.ROBLOX_CLIENT_ID;
 const ROBLOX_CLIENT_SECRET = process.env.ROBLOX_CLIENT_SECRET;
-const ROBLOX_REDIRECT_URI = process.env.ROBLOX_REDIRECT_URI || 'https://aeternorithm-project-production.up.railway.app/roblox/callback';
-const WEBSITE_URL = process.env.WEBSITE_URL || 'https://aeternorithm-project-production.up.railway.app';
+const ROBLOX_REDIRECT_URI = process.env.ROBLOX_REDIRECT_URI || '';
+const WEBSITE_URL = process.env.WEBSITE_URL || '';
 const BOT_API_URL = process.env.BOT_API_URL || '';
 const BOT_API_SECRET = process.env.BOT_API_SECRET || '';
 
