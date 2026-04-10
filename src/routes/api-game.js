@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const PlayerData = require('../models/PlayerData');
+const { getRobloxVerifyModel } = require('../models/RobloxVerify');
 
 // Middleware: verify game API secret
 function verifyGameSecret(req, res, next) {
@@ -111,10 +112,60 @@ router.get('/players', async (req, res) => {
             PlayerData.countDocuments({ ...filter, is_online: true })
         ]);
 
+        // Lookup Discord verification data for each player
+        const robloxIds = players.map(p => p.roblox_user_id);
+        const RobloxVerify = getRobloxVerifyModel();
+        const verifyRecords = await RobloxVerify.find({
+            roblox_user_id: { $in: robloxIds }
+        }).lean().catch(() => []);
+
+        // Build a map: roblox_user_id -> verify record
+        const verifyMap = {};
+        for (const v of verifyRecords) {
+            verifyMap[v.roblox_user_id] = v;
+        }
+
+        // Lookup website link data for verified discord users
+        const discordIds = verifyRecords
+            .filter(v => v.discord_user_id)
+            .map(v => v.discord_user_id);
+
+        let userMap = {};
+        if (discordIds.length > 0) {
+            const linkedUsers = await User.find({
+                discord_user_id: { $in: discordIds }
+            }, { discord_user_id: 1, username: 1 }).lean().catch(() => []);
+            for (const u of linkedUsers) {
+                userMap[u.discord_user_id] = u;
+            }
+        }
+
+        // Attach verify & website info to each player
+        const enrichedPlayers = players.map(p => {
+            const verify = verifyMap[p.roblox_user_id];
+            const result = { ...p };
+            if (verify) {
+                result.discord_user_id = verify.discord_user_id;
+                result.roblox_verified = verify.status === 'verified';
+                result.verified_at = verify.verified_at;
+                const websiteUser = userMap[verify.discord_user_id];
+                if (websiteUser) {
+                    result.website_linked = true;
+                    result.website_username = websiteUser.username;
+                } else {
+                    result.website_linked = false;
+                }
+            } else {
+                result.roblox_verified = false;
+                result.website_linked = false;
+            }
+            return result;
+        });
+
         console.log(`[API-Game] /players GET | page:${page} limit:${limit} search:"${search}" found:${total}`);
         res.json({
             success: true,
-            players,
+            players: enrichedPlayers,
             pagination: { page, limit, total, pages: Math.ceil(total / limit) },
             stats: { total, online: totalOnline, offline: total - totalOnline }
         });

@@ -67,6 +67,8 @@
                                 <th>Status</th>
                                 <th>Player</th>
                                 <th>Roblox ID</th>
+                                <th>Discord</th>
+                                <th>Verify</th>
                                 <th>Selected Slot</th>
                                 <th>Slots</th>
                                 <th>Last Seen</th>
@@ -157,15 +159,26 @@
         function renderTable(players) {
             var tbody = document.getElementById('playersBody');
             if (players.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No players found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No players found</td></tr>';
                 return;
             }
             tbody.innerHTML = players.map(function(p) {
                 var slotCount = (p.created_slots || []).length;
+                var discordInfo = p.discord_user_id ? esc(p.discord_user_id) : '<span class="muted">-</span>';
+                var verifyStatus = '';
+                if (p.roblox_verified && p.website_linked) {
+                    verifyStatus = '<span class="verify-badge full">Roblox + Web</span>';
+                } else if (p.roblox_verified) {
+                    verifyStatus = '<span class="verify-badge roblox">Roblox</span>';
+                } else {
+                    verifyStatus = '<span class="verify-badge none">None</span>';
+                }
                 return '<tr class="clickable-row" data-id="' + p._id + '">' +
                     '<td><span class="status-badge ' + (p.is_online ? 'online' : 'offline') + '">' + (p.is_online ? 'Online' : 'Offline') + '</span></td>' +
                     '<td class="player-cell">' + esc(p.roblox_username || 'Unknown') + '</td>' +
                     '<td>' + p.roblox_user_id + '</td>' +
+                    '<td class="discord-cell">' + discordInfo + '</td>' +
+                    '<td>' + verifyStatus + '</td>' +
                     '<td>' + (p.selected_slot || 1) + '</td>' +
                     '<td>' + slotCount + '</td>' +
                     '<td class="muted">' + timeAgo(p.last_seen || p.updated_at) + '</td>' +
@@ -214,6 +227,16 @@
             html += detailRow('Created Slots', (p.created_slots || []).join(', '));
             html += detailRow('Last Seen', new Date(p.last_seen || p.updated_at).toLocaleString());
             html += '</div></div>';
+
+            html += '<div class="detail-section"><h4>Verification</h4><div class="detail-list">';
+            html += detailRow('Discord ID', p.discord_user_id || '-');
+            var rVerify = p.roblox_verified ? '<span class="verify-badge roblox">Verified</span>' : '<span class="verify-badge none">Not Verified</span>';
+            html += detailRow('Roblox Verify', rVerify);
+            var wVerify = p.website_linked ? '<span class="verify-badge full">Linked (' + esc(p.website_username || '') + ')</span>' : '<span class="verify-badge none">Not Linked</span>';
+            html += detailRow('Website Verify', wVerify);
+            if (p.verified_at) html += detailRow('Verified At', new Date(p.verified_at).toLocaleString());
+            html += '</div></div>';
+
             html += '</div>';
 
             document.getElementById('modalBody').innerHTML = html;

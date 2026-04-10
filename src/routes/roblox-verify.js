@@ -211,6 +211,30 @@ router.get('/callback', async (req, res) => {
             robloxUserId = parseInt(decoded.sub);
         }
 
+        // Check if this Roblox account is already verified by another Discord user
+        const existingRoblox = await getRobloxVerifyModel().findOne({
+            roblox_user_id: robloxUserId,
+            status: 'verified',
+            discord_user_id: { $ne: oauthState.discord_user_id }
+        });
+
+        if (existingRoblox) {
+            await RobloxOAuthState.findOneAndUpdate(
+                { state },
+                { status: 'error', error_message: 'Roblox account already verified by another user' }
+            );
+
+            // Clear session data
+            delete req.session.robloxCodeVerifier;
+            delete req.session.robloxState;
+
+            return res.render('roblox-verify', {
+                success: false,
+                error: 'This Roblox account is already verified by another Discord user.',
+                errorTH: 'บัญชี Roblox นี้ถูกยืนยันโดยบัญชี Discord อื่นแล้ว'
+            });
+        }
+
         // Update state with verified status
         await RobloxOAuthState.findOneAndUpdate(
             { state },
