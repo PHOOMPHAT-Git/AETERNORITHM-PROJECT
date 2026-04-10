@@ -173,6 +173,33 @@ a { text-decoration: none; color: inherit; }
     margin-top: 4px;
 }
 
+.btn-discord {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: #5865F2;
+    color: #fff;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s;
+}
+
+.btn-discord:hover {
+    background: #4752C4;
+}
+
+.discord-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
 .auth-footer {
     text-align: center;
     margin-top: 24px;
