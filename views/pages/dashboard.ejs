@@ -50,7 +50,7 @@
                 </div>
                 <div class="stat-card">
                     <span class="stat-value online" id="webLinked">-</span>
-                    <span class="stat-label">Web Linked</span>
+                    <span class="stat-label">Website Linked</span>
                 </div>
             </div>
 
@@ -136,8 +136,8 @@
 
         function renderStats(stats) {
             document.getElementById('totalMembers').textContent = stats.total || 0;
-            document.getElementById('robloxVerified').textContent = stats.roblox_verified || 0;
-            document.getElementById('webLinked').textContent = stats.website_linked || 0;
+            document.getElementById('robloxVerified').textContent = (stats.roblox_verified || 0) + ' / ' + (stats.total || 0);
+            document.getElementById('webLinked').textContent = (stats.website_linked || 0) + ' / ' + (stats.total || 0);
         }
 
         function formatDate(date) {

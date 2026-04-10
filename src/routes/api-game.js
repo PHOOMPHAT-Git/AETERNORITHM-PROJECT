@@ -221,6 +221,11 @@ router.get('/players', async (req, res) => {
             return dateB - dateA;
         });
 
+        // Compute stats from ALL entries (before search filter)
+        const totalAll = allEntries.length;
+        const totalRobloxVerified = allEntries.filter(e => e.roblox_verified).length;
+        const totalWebLinked = allEntries.filter(e => e.website_linked).length;
+
         // Search filter
         if (search) {
             allEntries = allEntries.filter(e => {
@@ -233,8 +238,6 @@ router.get('/players', async (req, res) => {
         }
 
         const total = allEntries.length;
-        const totalRobloxVerified = allEntries.filter(e => e.roblox_verified).length;
-        const totalWebLinked = allEntries.filter(e => e.website_linked).length;
 
         // Paginate
         const skip = (page - 1) * limit;
@@ -246,7 +249,7 @@ router.get('/players', async (req, res) => {
             players: paginatedEntries,
             pagination: { page, limit, total, pages: Math.ceil(total / limit) },
             stats: {
-                total,
+                total: totalAll,
                 roblox_verified: totalRobloxVerified,
                 website_linked: totalWebLinked
             }
