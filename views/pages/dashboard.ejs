@@ -67,8 +67,7 @@
                                 <th>Discord</th>
                                 <th>Roblox Account</th>
                                 <th>Roblox Verified</th>
-                                <th>Web Account</th>
-                                <th>Web Linked</th>
+                                <th>Website Linked</th>
                             </tr>
                         </thead>
                         <tbody id="playersBody">
@@ -170,15 +169,10 @@
                     ? '<span class="muted">' + formatDate(p.roblox_verified_at) + '</span>'
                     : '<span class="muted">-</span>';
 
-                // Web account column
-                var webHtml = p.website_linked
-                    ? '<span class="verify-badge full">' + esc(p.website_username) + '</span>'
-                    : '<span class="verify-badge none">Not Linked</span>';
-
                 // Web linked at
                 var webDateHtml = p.website_linked_at
-                    ? '<span class="muted">' + formatDate(p.website_linked_at) + '</span>'
-                    : '<span class="muted">-</span>';
+                    ? '<span class="verify-badge full">' + esc(p.website_username) + '</span>'
+                    : '<span class="verify-badge none">Not Linked</span>';
 
                 return '<tr class="clickable-row" data-id="' + p._id + '">' +
                     '<td class="discord-cell">' + discordHtml + '</td>' +
@@ -250,7 +244,6 @@
             html += '<div class="detail-section"><h4>Website Verification</h4><div class="detail-list">';
             var wVerify = p.website_linked ? '<span class="verify-badge full">Linked</span>' : '<span class="verify-badge none">Not Linked</span>';
             html += detailRow('Status', wVerify);
-            html += detailRow('Web Account', p.website_username || '-');
             if (p.website_linked_at) html += detailRow('Linked At', new Date(p.website_linked_at).toLocaleString());
             html += '</div></div>';
 

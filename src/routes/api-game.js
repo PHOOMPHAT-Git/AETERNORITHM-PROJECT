@@ -214,15 +214,11 @@ router.get('/players', async (req, res) => {
             });
         }
 
-        // Sort: by discord status, then by name
+        // Sort: most recent server join first
         allEntries.sort((a, b) => {
-            const statusOrder = { online: 0, idle: 1, dnd: 2, offline: 3 };
-            const sa = statusOrder[a.discord_status] ?? 3;
-            const sb = statusOrder[b.discord_status] ?? 3;
-            if (sa !== sb) return sa - sb;
-            const nameA = (a.discord_display_name || a.discord_username || '').toLowerCase();
-            const nameB = (b.discord_display_name || b.discord_username || '').toLowerCase();
-            return nameA.localeCompare(nameB);
+            const dateA = a.discord_joined_at ? new Date(a.discord_joined_at).getTime() : 0;
+            const dateB = b.discord_joined_at ? new Date(b.discord_joined_at).getTime() : 0;
+            return dateB - dateA;
         });
 
         // Search filter
