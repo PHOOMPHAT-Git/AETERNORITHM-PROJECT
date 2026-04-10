@@ -4,6 +4,9 @@ const User = require('../models/User');
 const { getRobloxVerifyModel } = require('../models/RobloxVerify');
 const router = express.Router();
 
+const BOT_API_URL = process.env.BOT_API_URL || '';
+const BOT_API_SECRET = process.env.BOT_API_SECRET || '';
+
 const DISCORD_API = 'https://discord.com/api/v10';
 const CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
@@ -126,6 +129,29 @@ router.get('/callback', async (req, res) => {
                 }
             } catch (err) {
                 console.error('Error auto-linking Roblox:', err);
+            }
+        }
+
+        // Assign LINK role if both Roblox and Website are verified
+        if (BOT_API_URL && BOT_API_SECRET) {
+            try {
+                const robloxVerify = await getRobloxVerifyModel().findOne({
+                    discord_user_id: discordUser.id,
+                    status: 'verified'
+                }).lean();
+
+                if (robloxVerify) {
+                    await fetch(`${BOT_API_URL}/assign-link-role`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            discord_user_id: discordUser.id,
+                            secret: BOT_API_SECRET
+                        })
+                    }).catch(err => console.error('[Discord Auth] Failed to assign link role:', err));
+                }
+            } catch (err) {
+                console.error('[Discord Auth] Error checking link role:', err);
             }
         }
 

@@ -267,6 +267,21 @@ router.get('/callback', async (req, res) => {
         // Assign Discord role
         await assignDiscordRole(oauthState.discord_user_id, oauthState.guild_id);
 
+        // Assign LINK role if website account is also linked
+        if (BOT_API_URL && BOT_API_SECRET) {
+            const linkedUser = await User.findOne({ discord_user_id: oauthState.discord_user_id }).lean().catch(() => null);
+            if (linkedUser) {
+                fetch(`${BOT_API_URL}/assign-link-role`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        discord_user_id: oauthState.discord_user_id,
+                        secret: BOT_API_SECRET
+                    })
+                }).catch(err => console.error('[Roblox OAuth] Failed to assign link role:', err));
+            }
+        }
+
         // Clear session data
         delete req.session.robloxCodeVerifier;
         delete req.session.robloxState;
@@ -433,6 +448,21 @@ router.get('/start/:discordUserId/:guildId', async (req, res) => {
         if (existingVerify) {
             // Assign role even if already verified (in case they lost it)
             await assignDiscordRole(discordUserId, guildId);
+
+            // Assign LINK role if website account is also linked
+            if (BOT_API_URL && BOT_API_SECRET) {
+                const linkedUser = await User.findOne({ discord_user_id: discordUserId }).lean().catch(() => null);
+                if (linkedUser) {
+                    fetch(`${BOT_API_URL}/assign-link-role`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            discord_user_id: discordUserId,
+                            secret: BOT_API_SECRET
+                        })
+                    }).catch(err => console.error('[Roblox OAuth] Failed to assign link role:', err));
+                }
+            }
 
             return res.render('roblox-verify', {
                 success: true,
