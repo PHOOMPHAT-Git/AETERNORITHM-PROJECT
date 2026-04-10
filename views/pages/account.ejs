@@ -95,60 +95,6 @@
                 </div>
             </div>
 
-            <!-- Characters -->
-            <% if (typeof characters !== 'undefined' && characters.length > 0) { %>
-            <div class="card">
-                <h2 class="card-title">Characters</h2>
-                <div class="characters-grid">
-                    <% characters.forEach(function(c) { %>
-                    <div class="character-card">
-                        <div class="character-header">
-                            <span class="character-name"><%= c.character_name || 'Unnamed' %></span>
-                            <span class="character-slot">Slot <%= c.slot %></span>
-                        </div>
-                        <div class="character-stats">
-                            <div class="character-stat">
-                                <span class="stat-label">Level</span>
-                                <span class="stat-value"><%= c.level || 1 %></span>
-                            </div>
-                            <div class="character-stat">
-                                <span class="stat-label">Nex</span>
-                                <span class="stat-value"><%= c.nex || 0 %></span>
-                            </div>
-                            <div class="character-stat">
-                                <span class="stat-label">Bounty</span>
-                                <span class="stat-value"><%= c.bounty || 0 %></span>
-                            </div>
-                        </div>
-                        <div class="character-info">
-                            <% if (c.current_weapon) { %>
-                            <div class="info-row">
-                                <span class="info-label">Weapon</span>
-                                <span class="info-value"><%= c.current_weapon %></span>
-                            </div>
-                            <% } %>
-                            <% if (c.current_arcis) { %>
-                            <div class="info-row">
-                                <span class="info-label">Arcis</span>
-                                <span class="info-value"><%= c.current_arcis %></span>
-                            </div>
-                            <% } %>
-                            <% if (c.gender) { %>
-                            <div class="info-row">
-                                <span class="info-label">Gender</span>
-                                <span class="info-value"><%= c.gender %></span>
-                            </div>
-                            <% } %>
-                        </div>
-                        <div class="character-footer">
-                            <span class="status-badge <%= c.is_online ? 'online' : 'offline' %>"><%= c.is_online ? 'Online' : 'Offline' %></span>
-                        </div>
-                    </div>
-                    <% }); %>
-                </div>
-            </div>
-            <% } %>
-
             <!-- Token -->
             <div class="card token-card">
                 <div class="token-info">
@@ -156,7 +102,7 @@
                     <p class="card-desc">Use this token for Website Verify in Discord</p>
                 </div>
                 <div class="token-action">
-                    <button class="btn btn-outline btn-sm" onclick="copyToken()" id="copyTokenBtn">Copy Token</button>
+                    <button class="btn btn-outline btn-sm" onclick="copyToken()" id="copyTokenBtn">Copy</button>
                 </div>
             </div>
 

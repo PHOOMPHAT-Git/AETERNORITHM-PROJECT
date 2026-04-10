@@ -48,6 +48,10 @@
                     <span class="stat-value online" id="onlinePlayers">-</span>
                     <span class="stat-label">Online</span>
                 </div>
+                <div class="stat-card">
+                    <span class="stat-value offline" id="offlinePlayers">-</span>
+                    <span class="stat-label">Offline</span>
+                </div>
             </div>
 
             <!-- Players Table -->
@@ -139,6 +143,7 @@
             document.getElementById('totalPlayers').textContent = allPlayers.length;
             var online = allPlayers.filter(function(p) { return p.is_online; }).length;
             document.getElementById('onlinePlayers').textContent = online;
+            document.getElementById('offlinePlayers').textContent = allPlayers.length - online;
         }
 
         function renderTable(players) {
@@ -184,23 +189,6 @@
             html += detailRow('Created Slots', (p.created_slots || []).join(', '));
             html += detailRow('Last Seen', new Date(p.last_seen || p.updated_at).toLocaleString());
             html += '</div></div>';
-
-            // Settings
-            var settings = p.settings || {};
-            var settingKeys = Object.keys(settings);
-            if (settingKeys.length > 0) {
-                for (var i = 0; i < settingKeys.length; i++) {
-                    var cat = settingKeys[i];
-                    var catData = settings[cat];
-                    if (typeof catData === 'object' && catData !== null) {
-                        html += '<div class="detail-section"><h4>' + esc(cat) + '</h4><div class="detail-list">';
-                        for (var key in catData) {
-                            html += detailRow(key, catData[key]);
-                        }
-                        html += '</div></div>';
-                    }
-                }
-            }
 
             html += '</div>';
 
