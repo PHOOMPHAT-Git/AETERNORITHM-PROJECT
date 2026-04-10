@@ -45,7 +45,7 @@ a { text-decoration: none; color: inherit; }
 .header-actions { display: flex; align-items: center; gap: 12px; }
 
 /* Stats Row */
-.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
 .stat-card {
     background: rgba(255,255,255,0.03);
     border: 1px solid rgba(255,255,255,0.06);
@@ -221,7 +221,7 @@ a { text-decoration: none; color: inherit; }
 .modal-body { padding: 20px 24px; }
 
 /* Detail Grid */
-.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
 .detail-section h4 {
     font-size: 0.8rem; font-weight: 600; color: #71717a;
     text-transform: uppercase; letter-spacing: 0.5px;

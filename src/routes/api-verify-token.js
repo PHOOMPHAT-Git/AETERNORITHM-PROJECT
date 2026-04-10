@@ -47,6 +47,7 @@ router.post('/', async (req, res) => {
 
         // Link Discord account to website account
         user.discord_user_id = discord_user_id;
+        user.website_linked_at = new Date();
         user.updated_at = Date.now();
         await user.save();
 

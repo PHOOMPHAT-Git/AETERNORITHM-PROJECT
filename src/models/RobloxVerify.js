@@ -12,6 +12,10 @@ const robloxVerifySchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    roblox_username: {
+        type: String,
+        default: null
+    },
     guild_id: {
         type: String,
         required: true

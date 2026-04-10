@@ -45,16 +45,12 @@
                     <span class="stat-label">Discord Members</span>
                 </div>
                 <div class="stat-card">
-                    <span class="stat-value online" id="discordOnline">-</span>
-                    <span class="stat-label">Discord Online</span>
+                    <span class="stat-value online" id="robloxVerified">-</span>
+                    <span class="stat-label">Roblox Verified</span>
                 </div>
                 <div class="stat-card">
-                    <span class="stat-value online" id="onlinePlayers">-</span>
-                    <span class="stat-label">In-Game</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-value offline" id="offlinePlayers">-</span>
-                    <span class="stat-label">Offline</span>
+                    <span class="stat-value online" id="webLinked">-</span>
+                    <span class="stat-label">Web Linked</span>
                 </div>
             </div>
 
@@ -68,16 +64,15 @@
                     <table class="data-table" id="playersTable">
                         <thead>
                             <tr>
-                                <th>Status</th>
                                 <th>Discord</th>
-                                <th>Roblox</th>
-                                <th>Game</th>
-                                <th>Verify</th>
-                                <th>Last Seen</th>
+                                <th>Roblox Account</th>
+                                <th>Roblox Verified</th>
+                                <th>Web Account</th>
+                                <th>Web Linked</th>
                             </tr>
                         </thead>
                         <tbody id="playersBody">
-                            <tr><td colspan="6" class="empty-state">Loading...</td></tr>
+                            <tr><td colspan="5" class="empty-state">Loading...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -111,18 +106,6 @@
         var searchQuery = '';
         var searchTimer = null;
 
-        function timeAgo(date) {
-            var now = Date.now();
-            var diff = now - new Date(date).getTime();
-            var mins = Math.floor(diff / 60000);
-            if (mins < 1) return 'Just now';
-            if (mins < 60) return mins + 'm ago';
-            var hours = Math.floor(mins / 60);
-            if (hours < 24) return hours + 'h ago';
-            var days = Math.floor(hours / 24);
-            return days + 'd ago';
-        }
-
         async function loadPlayers() {
             var btn = document.getElementById('refreshBtn');
             var dot = document.getElementById('refreshStatus');
@@ -153,67 +136,56 @@
         }
 
         function renderStats(stats) {
-            document.getElementById('totalMembers').textContent = stats.discord_total || stats.total;
-            document.getElementById('discordOnline').textContent = stats.discord_online || 0;
-            document.getElementById('onlinePlayers').textContent = stats.online;
-            document.getElementById('offlinePlayers').textContent = stats.offline;
+            document.getElementById('totalMembers').textContent = stats.total || 0;
+            document.getElementById('robloxVerified').textContent = stats.roblox_verified || 0;
+            document.getElementById('webLinked').textContent = stats.website_linked || 0;
+        }
+
+        function formatDate(date) {
+            if (!date) return '-';
+            var d = new Date(date);
+            return d.toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' +
+                   d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
         }
 
         function renderTable(players) {
             var tbody = document.getElementById('playersBody');
             if (players.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No members found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No members found</td></tr>';
                 return;
             }
             tbody.innerHTML = players.map(function(p) {
-                // Status column - show Discord status + in-game
-                var statusHtml = '';
-                if (p.is_online) {
-                    statusHtml = '<span class="status-badge online">In-Game</span>';
-                } else {
-                    var dsClass = p.discord_status === 'online' ? 'online' : (p.discord_status === 'idle' ? 'idle' : (p.discord_status === 'dnd' ? 'dnd' : 'offline'));
-                    var dsLabel = p.discord_status === 'online' ? 'Online' : (p.discord_status === 'idle' ? 'Idle' : (p.discord_status === 'dnd' ? 'DND' : 'Offline'));
-                    statusHtml = '<span class="status-badge ' + dsClass + '">' + dsLabel + '</span>';
-                }
-
                 // Discord column
-                var discordHtml = '';
-                if (p.discord_username) {
-                    discordHtml = '<div class="member-info">';
-                    if (p.discord_avatar) discordHtml += '<img class="member-avatar" src="' + esc(p.discord_avatar) + '" alt="">';
-                    discordHtml += '<span>' + esc(p.discord_display_name || p.discord_username) + '</span></div>';
-                } else if (p.discord_user_id) {
-                    discordHtml = '<span class="muted">' + esc(p.discord_user_id) + '</span>';
-                } else {
-                    discordHtml = '<span class="muted">-</span>';
-                }
+                var discordHtml = '<div class="member-info">';
+                if (p.discord_avatar) discordHtml += '<img class="member-avatar" src="' + esc(p.discord_avatar) + '" alt="">';
+                discordHtml += '<span>' + esc(p.discord_display_name || p.discord_username) + '</span></div>';
 
-                // Roblox column
-                var robloxHtml = p.roblox_username ? esc(p.roblox_username) : '<span class="muted">-</span>';
+                // Roblox account column
+                var robloxHtml = p.roblox_verified
+                    ? '<span class="verify-badge roblox">' + esc(p.roblox_username || String(p.roblox_user_id)) + '</span>'
+                    : '<span class="verify-badge none">Not Verified</span>';
 
-                // Game status
-                var gameHtml = p.has_played ? (p.is_online ? '<span class="verify-badge full">Playing</span>' : '<span class="verify-badge roblox">Played</span>') : '<span class="verify-badge none">Never</span>';
+                // Roblox verified at
+                var robloxDateHtml = p.roblox_verified_at
+                    ? '<span class="muted">' + formatDate(p.roblox_verified_at) + '</span>'
+                    : '<span class="muted">-</span>';
 
-                // Verify
-                var verifyStatus = '';
-                if (p.roblox_verified && p.website_linked) {
-                    verifyStatus = '<span class="verify-badge full">Roblox + Web</span>';
-                } else if (p.roblox_verified) {
-                    verifyStatus = '<span class="verify-badge roblox">Roblox</span>';
-                } else {
-                    verifyStatus = '<span class="verify-badge none">None</span>';
-                }
+                // Web account column
+                var webHtml = p.website_linked
+                    ? '<span class="verify-badge full">' + esc(p.website_username) + '</span>'
+                    : '<span class="verify-badge none">Not Linked</span>';
 
-                // Last seen
-                var lastSeenHtml = p.last_seen ? timeAgo(p.last_seen) : '<span class="muted">-</span>';
+                // Web linked at
+                var webDateHtml = p.website_linked_at
+                    ? '<span class="muted">' + formatDate(p.website_linked_at) + '</span>'
+                    : '<span class="muted">-</span>';
 
                 return '<tr class="clickable-row" data-id="' + p._id + '">' +
-                    '<td>' + statusHtml + '</td>' +
                     '<td class="discord-cell">' + discordHtml + '</td>' +
                     '<td class="player-cell">' + robloxHtml + '</td>' +
-                    '<td>' + gameHtml + '</td>' +
-                    '<td>' + verifyStatus + '</td>' +
-                    '<td class="muted">' + lastSeenHtml + '</td>' +
+                    '<td class="muted">' + robloxDateHtml + '</td>' +
+                    '<td>' + webHtml + '</td>' +
+                    '<td class="muted">' + webDateHtml + '</td>' +
                 '</tr>';
             }).join('');
         }
@@ -265,22 +237,21 @@
             if (p.discord_joined_at) html += detailRow('Joined Server', new Date(p.discord_joined_at).toLocaleString());
             html += '</div></div>';
 
-            // Game Info
-            html += '<div class="detail-section"><h4>Game</h4><div class="detail-list">';
+            // Roblox Verification
+            html += '<div class="detail-section"><h4>Roblox Verification</h4><div class="detail-list">';
+            var rVerify = p.roblox_verified ? '<span class="verify-badge roblox">Verified</span>' : '<span class="verify-badge none">Not Verified</span>';
+            html += detailRow('Status', rVerify);
+            html += detailRow('Roblox Account', p.roblox_username || (p.roblox_user_id ? String(p.roblox_user_id) : '-'));
             html += detailRow('Roblox ID', p.roblox_user_id || '-');
-            html += detailRow('Roblox Username', p.roblox_username || '-');
-            html += detailRow('In-Game', p.is_online ? '<span class="status-badge online">Online</span>' : '<span class="status-badge offline">Offline</span>');
-            html += detailRow('Has Played', p.has_played ? 'Yes' : 'No');
-            if (p.last_seen) html += detailRow('Last Seen', new Date(p.last_seen).toLocaleString());
+            if (p.roblox_verified_at) html += detailRow('Verified At', new Date(p.roblox_verified_at).toLocaleString());
             html += '</div></div>';
 
-            // Verification
-            html += '<div class="detail-section"><h4>Verification</h4><div class="detail-list">';
-            var rVerify = p.roblox_verified ? '<span class="verify-badge roblox">Verified</span>' : '<span class="verify-badge none">Not Verified</span>';
-            html += detailRow('Roblox Verify', rVerify);
-            var wVerify = p.website_linked ? '<span class="verify-badge full">Linked (' + esc(p.website_username || '') + ')</span>' : '<span class="verify-badge none">Not Linked</span>';
-            html += detailRow('Website Verify', wVerify);
-            if (p.verified_at) html += detailRow('Verified At', new Date(p.verified_at).toLocaleString());
+            // Website Verification
+            html += '<div class="detail-section"><h4>Website Verification</h4><div class="detail-list">';
+            var wVerify = p.website_linked ? '<span class="verify-badge full">Linked</span>' : '<span class="verify-badge none">Not Linked</span>';
+            html += detailRow('Status', wVerify);
+            html += detailRow('Web Account', p.website_username || '-');
+            if (p.website_linked_at) html += detailRow('Linked At', new Date(p.website_linked_at).toLocaleString());
             html += '</div></div>';
 
             html += '</div>';

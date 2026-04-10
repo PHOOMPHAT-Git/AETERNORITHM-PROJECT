@@ -126,111 +126,102 @@ router.get('/players', async (req, res) => {
 
         // Fetch all data in parallel
         const RobloxVerify = getRobloxVerifyModel();
-        const [discordMembers, allVerifyRecords, allPlayers, allWebUsers] = await Promise.all([
+        const [discordMembers, allVerifyRecords, allWebUsers] = await Promise.all([
             fetchDiscordMembers(),
             RobloxVerify.find({}).lean().catch(() => []),
-            PlayerData.find({}, { settings: 0 }).lean().catch(() => []),
-            User.find({ discord_user_id: { $exists: true, $ne: null } }, { discord_user_id: 1, username: 1 }).lean().catch(() => [])
+            User.find({ discord_user_id: { $exists: true, $ne: null } }, { discord_user_id: 1, username: 1, website_linked_at: 1 }).lean().catch(() => [])
         ]);
 
         // Build maps
-        // verify: discord_user_id -> verify record
         const verifyByDiscord = {};
-        const verifyByRoblox = {};
         for (const v of allVerifyRecords) {
             if (v.discord_user_id) verifyByDiscord[v.discord_user_id] = v;
-            if (v.roblox_user_id) verifyByRoblox[v.roblox_user_id] = v;
         }
 
-        // players: roblox_user_id -> player record
-        const playerByRoblox = {};
-        for (const p of allPlayers) {
-            playerByRoblox[p.roblox_user_id] = p;
-        }
-
-        // website users: discord_user_id -> user record
         const webUserByDiscord = {};
         for (const u of allWebUsers) {
             if (u.discord_user_id) webUserByDiscord[u.discord_user_id] = u;
         }
 
-        // Build unified list: start from Discord members
-        const seenDiscordIds = new Set();
-        const seenRobloxIds = new Set();
+        // Batch-fetch current Roblox usernames for all verified users
+        const robloxIds = allVerifyRecords
+            .filter(v => v.status === 'verified' && v.roblox_user_id)
+            .map(v => Number(v.roblox_user_id));
+
+        const robloxNameMap = {};
+        if (robloxIds.length > 0) {
+            try {
+                // Roblox API accepts up to 100 IDs per request
+                for (let i = 0; i < robloxIds.length; i += 100) {
+                    const batch = robloxIds.slice(i, i + 100);
+                    const rblxRes = await fetch('https://users.roblox.com/v1/users', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userIds: batch, excludeBannedUsers: false })
+                    });
+                    if (rblxRes.ok) {
+                        const rblxData = await rblxRes.json();
+                        for (const u of (rblxData.data || [])) {
+                            robloxNameMap[u.id] = u.name;
+                        }
+                    }
+                }
+
+                // Update changed usernames in DB (fire-and-forget)
+                for (const v of allVerifyRecords) {
+                    const freshName = robloxNameMap[v.roblox_user_id];
+                    if (freshName && freshName !== v.roblox_username) {
+                        RobloxVerify.updateOne(
+                            { discord_user_id: v.discord_user_id },
+                            { $set: { roblox_username: freshName } }
+                        ).catch(() => {});
+                    }
+                }
+            } catch (err) {
+                console.error('[API-Game] Failed to fetch Roblox usernames:', err.message);
+            }
+        }
+
+        // Build list from Discord members only
         let allEntries = [];
 
-        // 1) All Discord members
         for (const m of discordMembers) {
-            seenDiscordIds.add(m.discord_user_id);
             const verify = verifyByDiscord[m.discord_user_id];
-            const player = verify ? playerByRoblox[verify.roblox_user_id] : null;
             const webUser = webUserByDiscord[m.discord_user_id];
 
-            if (verify && verify.roblox_user_id) seenRobloxIds.add(verify.roblox_user_id);
+            // Use fresh Roblox username if available, fallback to stored
+            const robloxUsername = verify
+                ? (robloxNameMap[verify.roblox_user_id] || verify.roblox_username)
+                : null;
 
             allEntries.push({
-                _id: player ? player._id : 'discord_' + m.discord_user_id,
-                source: 'discord',
-                // Discord info
+                _id: 'discord_' + m.discord_user_id,
                 discord_user_id: m.discord_user_id,
                 discord_username: m.discord_username,
                 discord_display_name: m.discord_display_name,
                 discord_avatar: m.discord_avatar,
                 discord_status: m.discord_status,
                 discord_joined_at: m.discord_joined_at,
-                // Game info
+                // Roblox verify
+                roblox_verified: verify ? verify.status === 'verified' : false,
+                roblox_username: robloxUsername,
                 roblox_user_id: verify ? verify.roblox_user_id : null,
-                roblox_username: player ? player.roblox_username : (verify ? verify.roblox_username : null),
-                is_online: player ? player.is_online : false,
-                last_seen: player ? (player.last_seen || player.updated_at) : null,
-                has_played: !!player,
-                // Verify info
-                roblox_verified: verify ? verify.status === 'verified' : false,
-                verified_at: verify ? verify.verified_at : null,
+                roblox_verified_at: verify ? verify.verified_at : null,
+                // Website verify
                 website_linked: !!webUser,
-                website_username: webUser ? webUser.username : null
+                website_username: webUser ? webUser.username : null,
+                website_linked_at: webUser ? webUser.website_linked_at : null
             });
         }
 
-        // 2) Players not yet in the list (no Discord or Discord not in server)
-        for (const p of allPlayers) {
-            if (seenRobloxIds.has(p.roblox_user_id)) continue;
-            const verify = verifyByRoblox[p.roblox_user_id];
-            const discordId = verify ? verify.discord_user_id : null;
-            if (discordId && seenDiscordIds.has(discordId)) continue;
-
-            const webUser = discordId ? webUserByDiscord[discordId] : null;
-
-            allEntries.push({
-                _id: p._id,
-                source: 'game',
-                discord_user_id: discordId,
-                discord_username: null,
-                discord_display_name: null,
-                discord_avatar: null,
-                discord_status: 'offline',
-                discord_joined_at: null,
-                roblox_user_id: p.roblox_user_id,
-                roblox_username: p.roblox_username,
-                is_online: p.is_online,
-                last_seen: p.last_seen || p.updated_at,
-                has_played: true,
-                roblox_verified: verify ? verify.status === 'verified' : false,
-                verified_at: verify ? verify.verified_at : null,
-                website_linked: !!webUser,
-                website_username: webUser ? webUser.username : null
-            });
-        }
-
-        // Sort: online first, then by discord status, then by name
+        // Sort: by discord status, then by name
         allEntries.sort((a, b) => {
-            if (a.is_online !== b.is_online) return a.is_online ? -1 : 1;
             const statusOrder = { online: 0, idle: 1, dnd: 2, offline: 3 };
             const sa = statusOrder[a.discord_status] ?? 3;
             const sb = statusOrder[b.discord_status] ?? 3;
             if (sa !== sb) return sa - sb;
-            const nameA = (a.discord_display_name || a.roblox_username || '').toLowerCase();
-            const nameB = (b.discord_display_name || b.roblox_username || '').toLowerCase();
+            const nameA = (a.discord_display_name || a.discord_username || '').toLowerCase();
+            const nameB = (b.discord_display_name || b.discord_username || '').toLowerCase();
             return nameA.localeCompare(nameB);
         });
 
@@ -240,31 +231,28 @@ router.get('/players', async (req, res) => {
                 return (e.discord_username && e.discord_username.toLowerCase().includes(search)) ||
                        (e.discord_display_name && e.discord_display_name.toLowerCase().includes(search)) ||
                        (e.roblox_username && e.roblox_username.toLowerCase().includes(search)) ||
-                       (e.discord_user_id && e.discord_user_id.includes(search)) ||
-                       (e.roblox_user_id && String(e.roblox_user_id).includes(search));
+                       (e.website_username && e.website_username.toLowerCase().includes(search)) ||
+                       (e.discord_user_id && e.discord_user_id.includes(search));
             });
         }
 
         const total = allEntries.length;
-        const totalOnline = allEntries.filter(e => e.is_online).length;
-        const totalDiscordOnline = allEntries.filter(e => e.discord_status !== 'offline').length;
-        const totalInServer = discordMembers.length;
+        const totalRobloxVerified = allEntries.filter(e => e.roblox_verified).length;
+        const totalWebLinked = allEntries.filter(e => e.website_linked).length;
 
         // Paginate
         const skip = (page - 1) * limit;
         const paginatedEntries = allEntries.slice(skip, skip + limit);
 
-        console.log(`[API-Game] /players GET | page:${page} limit:${limit} search:"${search}" total:${total} discord:${totalInServer}`);
+        console.log(`[API-Game] /players GET | page:${page} limit:${limit} search:"${search}" total:${total}`);
         res.json({
             success: true,
             players: paginatedEntries,
             pagination: { page, limit, total, pages: Math.ceil(total / limit) },
             stats: {
                 total,
-                online: totalOnline,
-                offline: total - totalOnline,
-                discord_online: totalDiscordOnline,
-                discord_total: totalInServer
+                roblox_verified: totalRobloxVerified,
+                website_linked: totalWebLinked
             }
         });
     } catch (error) {

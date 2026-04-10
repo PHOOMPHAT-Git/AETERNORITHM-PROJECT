@@ -7,6 +7,7 @@ const UserSchema = new mongoose.Schema({
     token: { type: String, required: true, unique: true },
     roblox_user_id: { type: Number, default: null },
     discord_user_id: { type: String, default: null, unique: true, sparse: true },
+    website_linked_at: { type: Date, default: null },
     settings: {
         hide_email: { type: Boolean, default: true }
     },
