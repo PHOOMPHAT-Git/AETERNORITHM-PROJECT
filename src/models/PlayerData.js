@@ -12,5 +12,7 @@ const PlayerDataSchema = new mongoose.Schema({
 });
 
 PlayerDataSchema.index({ roblox_user_id: 1 }, { unique: true });
+PlayerDataSchema.index({ roblox_username: 1 });
+PlayerDataSchema.index({ is_online: 1, updated_at: -1 });
 
 module.exports = mongoose.models.PlayerData || mongoose.model('PlayerData', PlayerDataSchema, 'player_data');

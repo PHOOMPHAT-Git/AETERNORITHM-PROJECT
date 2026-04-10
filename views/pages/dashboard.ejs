@@ -77,6 +77,7 @@
                         </tbody>
                     </table>
                 </div>
+                <div class="pagination" id="pagination"></div>
             </div>
 
             <!-- Player Detail Modal -->
@@ -100,7 +101,11 @@
 
     <script>
     (function() {
-        var allPlayers = [];
+        var currentPlayers = [];
+        var currentPage = 1;
+        var totalPages = 1;
+        var searchQuery = '';
+        var searchTimer = null;
 
         function timeAgo(date) {
             var now = Date.now();
@@ -122,12 +127,16 @@
             dot.className = 'status-dot loading';
 
             try {
-                var res = await fetch('/api/game/players');
+                var params = '?page=' + currentPage + '&limit=50';
+                if (searchQuery) params += '&search=' + encodeURIComponent(searchQuery);
+                var res = await fetch('/api/game/players' + params);
                 var data = await res.json();
                 if (data.success) {
-                    allPlayers = data.players;
-                    renderStats();
-                    renderTable(allPlayers);
+                    currentPlayers = data.players;
+                    totalPages = data.pagination.pages || 1;
+                    renderStats(data.stats);
+                    renderTable(currentPlayers);
+                    renderPagination(data.pagination);
                     dot.className = 'status-dot success';
                 } else {
                     dot.className = 'status-dot error';
@@ -139,11 +148,10 @@
             btn.textContent = 'Refresh';
         }
 
-        function renderStats() {
-            document.getElementById('totalPlayers').textContent = allPlayers.length;
-            var online = allPlayers.filter(function(p) { return p.is_online; }).length;
-            document.getElementById('onlinePlayers').textContent = online;
-            document.getElementById('offlinePlayers').textContent = allPlayers.length - online;
+        function renderStats(stats) {
+            document.getElementById('totalPlayers').textContent = stats.total;
+            document.getElementById('onlinePlayers').textContent = stats.online;
+            document.getElementById('offlinePlayers').textContent = stats.offline;
         }
 
         function renderTable(players) {
@@ -154,7 +162,6 @@
             }
             tbody.innerHTML = players.map(function(p) {
                 var slotCount = (p.created_slots || []).length;
-
                 return '<tr class="clickable-row" data-id="' + p._id + '">' +
                     '<td><span class="status-badge ' + (p.is_online ? 'online' : 'offline') + '">' + (p.is_online ? 'Online' : 'Offline') + '</span></td>' +
                     '<td class="player-cell">' + esc(p.roblox_username || 'Unknown') + '</td>' +
@@ -166,6 +173,25 @@
             }).join('');
         }
 
+        function renderPagination(pg) {
+            var el = document.getElementById('pagination');
+            if (pg.pages <= 1) { el.innerHTML = ''; return; }
+
+            var html = '';
+            html += '<button class="pg-btn" ' + (pg.page <= 1 ? 'disabled' : '') + ' data-page="' + (pg.page - 1) + '">&lsaquo;</button>';
+
+            var start = Math.max(1, pg.page - 2);
+            var end = Math.min(pg.pages, pg.page + 2);
+            if (start > 1) html += '<button class="pg-btn" data-page="1">1</button><span class="pg-dots">...</span>';
+            for (var i = start; i <= end; i++) {
+                html += '<button class="pg-btn' + (i === pg.page ? ' active' : '') + '" data-page="' + i + '">' + i + '</button>';
+            }
+            if (end < pg.pages) html += '<span class="pg-dots">...</span><button class="pg-btn" data-page="' + pg.pages + '">' + pg.pages + '</button>';
+
+            html += '<button class="pg-btn" ' + (pg.page >= pg.pages ? 'disabled' : '') + ' data-page="' + (pg.page + 1) + '">&rsaquo;</button>';
+            el.innerHTML = html;
+        }
+
         function esc(str) {
             var d = document.createElement('div');
             d.textContent = str;
@@ -173,14 +199,13 @@
         }
 
         function showModal(playerId) {
-            var p = allPlayers.find(function(pl) { return pl._id === playerId; });
+            var p = currentPlayers.find(function(pl) { return pl._id === playerId; });
             if (!p) return;
 
             document.getElementById('modalTitle').textContent =
                 (p.roblox_username || 'ID: ' + p.roblox_user_id) + ' - Player Details';
 
             var html = '<div class="detail-grid">';
-
             html += '<div class="detail-section"><h4>Player Info</h4><div class="detail-list">';
             html += detailRow('Roblox ID', p.roblox_user_id);
             html += detailRow('Username', p.roblox_username || '-');
@@ -189,7 +214,6 @@
             html += detailRow('Created Slots', (p.created_slots || []).join(', '));
             html += detailRow('Last Seen', new Date(p.last_seen || p.updated_at).toLocaleString());
             html += '</div></div>';
-
             html += '</div>';
 
             document.getElementById('modalBody').innerHTML = html;
@@ -201,15 +225,26 @@
         }
 
         // Events
-        document.getElementById('refreshBtn').addEventListener('click', loadPlayers);
+        document.getElementById('refreshBtn').addEventListener('click', function() {
+            loadPlayers();
+        });
 
         document.getElementById('searchInput').addEventListener('input', function() {
-            var q = this.value.toLowerCase();
-            var filtered = allPlayers.filter(function(p) {
-                return (p.roblox_username || '').toLowerCase().includes(q) ||
-                       String(p.roblox_user_id).includes(q);
-            });
-            renderTable(filtered);
+            var q = this.value.trim();
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(function() {
+                searchQuery = q;
+                currentPage = 1;
+                loadPlayers();
+            }, 300);
+        });
+
+        document.getElementById('pagination').addEventListener('click', function(e) {
+            var btn = e.target.closest('.pg-btn');
+            if (btn && !btn.disabled) {
+                currentPage = parseInt(btn.dataset.page);
+                loadPlayers();
+            }
         });
 
         document.getElementById('playersBody').addEventListener('click', function(e) {

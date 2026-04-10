@@ -14,7 +14,7 @@ function verifyGameSecret(req, res, next) {
     next();
 }
 
-// POST /api/game/player/batch - Game sends all player data at once
+// POST /api/game/player/batch
 router.post('/player/batch', verifyGameSecret, async (req, res) => {
     try {
         const { players } = req.body;
@@ -74,7 +74,7 @@ router.post('/player/left', verifyGameSecret, async (req, res) => {
     }
 });
 
-// GET /api/game/players - Get all players (for dashboard)
+// GET /api/game/players - Get players with pagination and search (for dashboard)
 router.get('/players', async (req, res) => {
     try {
         if (!req.session.user) {
@@ -87,9 +87,37 @@ router.get('/players', async (req, res) => {
             return res.status(403).json({ success: false, error: 'Access denied' });
         }
 
-        const players = await PlayerData.find({}).sort({ is_online: -1, updated_at: -1 }).lean();
-        console.log(`[API-Game] /players GET | found: ${players.length} players`);
-        res.json({ success: true, players });
+        const page = Math.max(1, parseInt(req.query.page) || 1);
+        const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 50));
+        const search = (req.query.search || '').trim();
+        const skip = (page - 1) * limit;
+
+        const filter = {};
+        if (search) {
+            const searchNum = Number(search);
+            if (!isNaN(searchNum) && String(searchNum) === search) {
+                filter.$or = [
+                    { roblox_username: { $regex: search, $options: 'i' } },
+                    { roblox_user_id: searchNum }
+                ];
+            } else {
+                filter.roblox_username = { $regex: search, $options: 'i' };
+            }
+        }
+
+        const [players, total, totalOnline] = await Promise.all([
+            PlayerData.find(filter, { settings: 0 }).sort({ is_online: -1, updated_at: -1 }).skip(skip).limit(limit).lean(),
+            PlayerData.countDocuments(filter),
+            PlayerData.countDocuments({ ...filter, is_online: true })
+        ]);
+
+        console.log(`[API-Game] /players GET | page:${page} limit:${limit} search:"${search}" found:${total}`);
+        res.json({
+            success: true,
+            players,
+            pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+            stats: { total, online: totalOnline, offline: total - totalOnline }
+        });
     } catch (error) {
         console.error('[API-Game] /players ERROR:', error);
         res.status(500).json({ success: false, error: 'Internal server error' });
