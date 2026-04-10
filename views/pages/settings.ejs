@@ -33,7 +33,7 @@
                         <span class="setting-desc">Partially hide your email on your profile</span>
                     </div>
                     <label class="toggle">
-                        <input type="checkbox" id="hideEmailToggle" <%= user.settings && user.settings.hideEmail ? 'checked' : '' %>>
+                        <input type="checkbox" id="hideEmailToggle" <%= user.settings && user.settings.hide_email ? 'checked' : '' %>>
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
@@ -49,7 +49,7 @@
     <script>
     (function() {
         var hideEmailToggle = document.getElementById('hideEmailToggle');
-        var original = { hideEmail: hideEmailToggle.checked };
+        var original = { hide_email: hideEmailToggle.checked };
 
         function showMsg(id, msg) {
             var el = document.getElementById(id);
@@ -58,8 +58,8 @@
         }
 
         async function save() {
-            var s = { hideEmail: hideEmailToggle.checked };
-            if (s.hideEmail === original.hideEmail) return true;
+            var s = { hide_email: hideEmailToggle.checked };
+            if (s.hide_email === original.hide_email) return true;
             try {
                 var res = await fetch('/settings', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(s) });
                 var data = await res.json();
@@ -80,7 +80,7 @@
                 var data = await res.json();
                 if (res.ok && data.success) {
                     hideEmailToggle.checked = true;
-                    original = { hideEmail: true };
+                    original = { hide_email: true };
                     showMsg('successMessage', 'Settings reset');
                 } else { showMsg('errorMessage', data.message || 'Failed'); }
             } catch(e) { showMsg('errorMessage', 'Error'); }

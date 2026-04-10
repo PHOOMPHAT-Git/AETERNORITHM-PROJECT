@@ -24,9 +24,9 @@ router.post('/', async (req, res) => {
         return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    const { hideEmail } = req.body;
+    const { hide_email } = req.body;
 
-    if (typeof hideEmail !== 'boolean') {
+    if (typeof hide_email !== 'boolean') {
         return res.status(400).json({ message: 'Invalid settings value' });
     }
 
@@ -36,11 +36,11 @@ router.post('/', async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        user.settings = { hideEmail };
+        user.settings = { hide_email };
         user.updated_at = Date.now();
         await user.save();
 
-        req.session.user.settings = { hideEmail };
+        req.session.user.settings = { hide_email };
 
         res.json({ success: true, message: 'Settings saved successfully' });
     } catch (error) {
@@ -61,11 +61,11 @@ router.post('/reset', async (req, res) => {
         }
 
         // Reset to default values from User schema
-        user.settings = { hideEmail: true };
+        user.settings = { hide_email: true };
         user.updated_at = Date.now();
         await user.save();
 
-        req.session.user.settings = { hideEmail: true };
+        req.session.user.settings = { hide_email: true };
 
         res.json({ success: true, message: 'Settings reset successfully' });
     } catch (error) {

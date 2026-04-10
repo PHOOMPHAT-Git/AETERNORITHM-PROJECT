@@ -59,6 +59,27 @@ async function migrate() {
 
     console.log(`\nMigration complete: ${migrated} migrated, ${skipped} skipped`);
 
+    // Clean up old collections from website database
+    if (migrated > 0) {
+        const collections = await websiteConn.db.listCollections().toArray();
+        const collectionNames = collections.map(c => c.name);
+
+        if (collectionNames.includes('robloxverifies')) {
+            await websiteConn.db.collection('robloxverifies').drop();
+            console.log('Dropped website.robloxverifies');
+        }
+
+        if (collectionNames.includes('roblox_verify')) {
+            await websiteConn.db.collection('roblox_verify').drop();
+            console.log('Dropped website.roblox_verify');
+        }
+
+        if (collectionNames.includes('friend_requests')) {
+            await websiteConn.db.collection('friend_requests').drop();
+            console.log('Dropped website.friend_requests');
+        }
+    }
+
     await websiteConn.close();
     await discordConn.close();
 }

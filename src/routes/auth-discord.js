@@ -1,6 +1,7 @@
 const express = require('express');
 const crypto = require('crypto');
 const User = require('../models/User');
+const { getRobloxVerifyModel } = require('../models/RobloxVerify');
 const router = express.Router();
 
 const DISCORD_API = 'https://discord.com/api/v10';
@@ -97,20 +98,33 @@ router.get('/callback', async (req, res) => {
                 username: discordUser.username,
                 email: discordUser.email || `${discordUser.id}@discord.user`,
                 discord_user_id: discordUser.id,
-                discord_avatar: discordUser.avatar,
-                discord_global_name: discordUser.global_name || discordUser.username,
                 token: userToken
             });
 
             await user.save();
             console.log(`New user registered via Discord: ${discordUser.username} (${discordUser.id})`);
         } else {
-            // Update Discord info on each login
-            user.discord_avatar = discordUser.avatar;
-            user.discord_global_name = discordUser.global_name || discordUser.username;
             if (discordUser.email) user.email = discordUser.email;
             user.updated_at = Date.now();
             await user.save();
+        }
+
+        // Auto-link Roblox account if verified in Discord
+        if (!user.roblox_user_id) {
+            try {
+                const robloxVerify = await getRobloxVerifyModel().findOne({
+                    discord_user_id: discordUser.id,
+                    status: 'verified'
+                }).lean();
+
+                if (robloxVerify) {
+                    user.roblox_user_id = robloxVerify.roblox_user_id;
+                    await user.save();
+                    console.log(`Auto-linked Roblox ${robloxVerify.roblox_user_id} to ${discordUser.username}`);
+                }
+            } catch (err) {
+                console.error('Error auto-linking Roblox:', err);
+            }
         }
 
         // Set session
@@ -118,9 +132,7 @@ router.get('/callback', async (req, res) => {
             id: user._id,
             username: user.username,
             email: user.email,
-            discord_user_id: user.discord_user_id,
-            discord_avatar: user.discord_avatar,
-            discord_global_name: user.discord_global_name
+            discord_user_id: user.discord_user_id
         };
 
         console.log(`User logged in via Discord: ${user.username} (${discordUser.id})`);

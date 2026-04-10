@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const { getRobloxVerifyModel } = require('../models/RobloxVerify');
-const GameCharacter = require('../models/GameData');
 
 router.get('/', async (req, res) => {
     if (!req.session.user) {
@@ -17,7 +16,6 @@ router.get('/', async (req, res) => {
 
         let robloxUserId = user.roblox_user_id;
 
-        // If User model doesn't have roblox_user_id, try to find it from RobloxVerify via discord_user_id
         if (!robloxUserId && user.discord_user_id) {
             const robloxVerify = await getRobloxVerifyModel().findOne({
                 discord_user_id: user.discord_user_id,
@@ -26,7 +24,6 @@ router.get('/', async (req, res) => {
 
             if (robloxVerify) {
                 robloxUserId = robloxVerify.roblox_user_id;
-                // Sync back to User model for future lookups
                 await User.findByIdAndUpdate(user._id, { roblox_user_id: robloxUserId }).catch(() => {});
             }
         }
@@ -49,15 +46,7 @@ router.get('/', async (req, res) => {
             }
         }
 
-        let characters = [];
-        if (robloxUserId) {
-            characters = await GameCharacter.find({ roblox_user_id: robloxUserId })
-                .sort({ slot: 1 })
-                .lean()
-                .catch(() => []);
-        }
-
-        res.render('account', { user, robloxInfo, characters });
+        res.render('account', { user, robloxInfo });
     } catch (error) {
         console.error('Error fetching user:', error);
         res.status(500).send('An error occurred');
