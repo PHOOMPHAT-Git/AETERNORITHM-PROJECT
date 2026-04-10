@@ -46,7 +46,8 @@ router.get('/', async (req, res) => {
             }
         }
 
-        res.render('account', { user, robloxInfo });
+        const isAdmin = user.email === process.env.ADMIN_EMAIL;
+        res.render('account', { user, robloxInfo, isAdmin });
     } catch (error) {
         console.error('Error fetching user:', error);
         res.status(500).send('An error occurred');

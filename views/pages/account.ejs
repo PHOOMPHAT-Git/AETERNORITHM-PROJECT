@@ -110,7 +110,7 @@
             <div class="card">
                 <h2 class="card-title">Quick Actions</h2>
                 <div class="actions-list">
-                    <a href="/dashboard" class="action-link">Dashboard</a>
+                    <% if (isAdmin) { %><a href="/dashboard" class="action-link">Dashboard</a><% } %>
                     <a href="/settings" class="action-link">Settings</a>
                     <button class="action-link action-danger" onclick="window.location.href='/logout'">Sign Out</button>
                 </div>
