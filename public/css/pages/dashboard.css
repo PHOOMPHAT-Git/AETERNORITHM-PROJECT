@@ -45,7 +45,7 @@ a { text-decoration: none; color: inherit; }
 .header-actions { display: flex; align-items: center; gap: 12px; }
 
 /* Stats Row */
-.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
 .stat-card {
     background: rgba(255,255,255,0.03);
     border: 1px solid rgba(255,255,255,0.06);
@@ -135,6 +135,8 @@ a { text-decoration: none; color: inherit; }
     border-radius: 4px;
 }
 .status-badge.online { background: rgba(34,197,94,0.12); color: #22c55e; }
+.status-badge.idle { background: rgba(234,179,8,0.12); color: #eab308; }
+.status-badge.dnd { background: rgba(239,68,68,0.12); color: #ef4444; }
 .status-badge.offline { background: rgba(113,113,122,0.12); color: #71717a; }
 
 /* Verify Badge */
@@ -149,6 +151,10 @@ a { text-decoration: none; color: inherit; }
 .verify-badge.roblox { background: rgba(234,179,8,0.12); color: #eab308; }
 .verify-badge.none { background: rgba(113,113,122,0.08); color: #52525a; }
 .discord-cell { font-size: 0.78rem; color: #a1a1aa; }
+
+/* Member Info */
+.member-info { display: flex; align-items: center; gap: 8px; }
+.member-avatar { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
 
 /* Buttons */
 .btn {
@@ -259,7 +265,7 @@ a { text-decoration: none; color: inherit; }
 @media (max-width: 768px) {
     .page { padding-top: 80px; }
     .page-header { flex-direction: column; align-items: flex-start; gap: 16px; }
-    .stats-row { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
     .card-header { flex-direction: column; align-items: flex-start; gap: 12px; }
     .search-input { width: 100%; }
     .detail-grid { grid-template-columns: 1fr; }

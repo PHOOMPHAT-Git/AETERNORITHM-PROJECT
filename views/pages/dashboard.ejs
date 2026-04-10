@@ -41,12 +41,16 @@
             <!-- Stats Summary -->
             <div class="stats-row" id="statsRow">
                 <div class="stat-card">
-                    <span class="stat-value" id="totalPlayers">-</span>
-                    <span class="stat-label">Total Players</span>
+                    <span class="stat-value" id="totalMembers">-</span>
+                    <span class="stat-label">Discord Members</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value online" id="discordOnline">-</span>
+                    <span class="stat-label">Discord Online</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-value online" id="onlinePlayers">-</span>
-                    <span class="stat-label">Online</span>
+                    <span class="stat-label">In-Game</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-value offline" id="offlinePlayers">-</span>
@@ -57,20 +61,18 @@
             <!-- Players Table -->
             <div class="card">
                 <div class="card-header">
-                    <h2 class="card-title">Players</h2>
-                    <input type="text" class="search-input" id="searchInput" placeholder="Search by username...">
+                    <h2 class="card-title">Members</h2>
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search by name or ID...">
                 </div>
                 <div class="table-wrap">
                     <table class="data-table" id="playersTable">
                         <thead>
                             <tr>
                                 <th>Status</th>
-                                <th>Player</th>
-                                <th>Roblox ID</th>
                                 <th>Discord</th>
+                                <th>Roblox</th>
+                                <th>Game</th>
                                 <th>Verify</th>
-                                <th>Selected Slot</th>
-                                <th>Slots</th>
                                 <th>Last Seen</th>
                             </tr>
                         </thead>
@@ -151,7 +153,8 @@
         }
 
         function renderStats(stats) {
-            document.getElementById('totalPlayers').textContent = stats.total;
+            document.getElementById('totalMembers').textContent = stats.discord_total || stats.total;
+            document.getElementById('discordOnline').textContent = stats.discord_online || 0;
             document.getElementById('onlinePlayers').textContent = stats.online;
             document.getElementById('offlinePlayers').textContent = stats.offline;
         }
@@ -159,12 +162,39 @@
         function renderTable(players) {
             var tbody = document.getElementById('playersBody');
             if (players.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No players found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No members found</td></tr>';
                 return;
             }
             tbody.innerHTML = players.map(function(p) {
-                var slotCount = (p.created_slots || []).length;
-                var discordInfo = p.discord_user_id ? esc(p.discord_user_id) : '<span class="muted">-</span>';
+                // Status column - show Discord status + in-game
+                var statusHtml = '';
+                if (p.is_online) {
+                    statusHtml = '<span class="status-badge online">In-Game</span>';
+                } else {
+                    var dsClass = p.discord_status === 'online' ? 'online' : (p.discord_status === 'idle' ? 'idle' : (p.discord_status === 'dnd' ? 'dnd' : 'offline'));
+                    var dsLabel = p.discord_status === 'online' ? 'Online' : (p.discord_status === 'idle' ? 'Idle' : (p.discord_status === 'dnd' ? 'DND' : 'Offline'));
+                    statusHtml = '<span class="status-badge ' + dsClass + '">' + dsLabel + '</span>';
+                }
+
+                // Discord column
+                var discordHtml = '';
+                if (p.discord_username) {
+                    discordHtml = '<div class="member-info">';
+                    if (p.discord_avatar) discordHtml += '<img class="member-avatar" src="' + esc(p.discord_avatar) + '" alt="">';
+                    discordHtml += '<span>' + esc(p.discord_display_name || p.discord_username) + '</span></div>';
+                } else if (p.discord_user_id) {
+                    discordHtml = '<span class="muted">' + esc(p.discord_user_id) + '</span>';
+                } else {
+                    discordHtml = '<span class="muted">-</span>';
+                }
+
+                // Roblox column
+                var robloxHtml = p.roblox_username ? esc(p.roblox_username) : '<span class="muted">-</span>';
+
+                // Game status
+                var gameHtml = p.has_played ? (p.is_online ? '<span class="verify-badge full">Playing</span>' : '<span class="verify-badge roblox">Played</span>') : '<span class="verify-badge none">Never</span>';
+
+                // Verify
                 var verifyStatus = '';
                 if (p.roblox_verified && p.website_linked) {
                     verifyStatus = '<span class="verify-badge full">Roblox + Web</span>';
@@ -173,15 +203,17 @@
                 } else {
                     verifyStatus = '<span class="verify-badge none">None</span>';
                 }
+
+                // Last seen
+                var lastSeenHtml = p.last_seen ? timeAgo(p.last_seen) : '<span class="muted">-</span>';
+
                 return '<tr class="clickable-row" data-id="' + p._id + '">' +
-                    '<td><span class="status-badge ' + (p.is_online ? 'online' : 'offline') + '">' + (p.is_online ? 'Online' : 'Offline') + '</span></td>' +
-                    '<td class="player-cell">' + esc(p.roblox_username || 'Unknown') + '</td>' +
-                    '<td>' + p.roblox_user_id + '</td>' +
-                    '<td class="discord-cell">' + discordInfo + '</td>' +
+                    '<td>' + statusHtml + '</td>' +
+                    '<td class="discord-cell">' + discordHtml + '</td>' +
+                    '<td class="player-cell">' + robloxHtml + '</td>' +
+                    '<td>' + gameHtml + '</td>' +
                     '<td>' + verifyStatus + '</td>' +
-                    '<td>' + (p.selected_slot || 1) + '</td>' +
-                    '<td>' + slotCount + '</td>' +
-                    '<td class="muted">' + timeAgo(p.last_seen || p.updated_at) + '</td>' +
+                    '<td class="muted">' + lastSeenHtml + '</td>' +
                 '</tr>';
             }).join('');
         }
@@ -216,20 +248,34 @@
             if (!p) return;
 
             document.getElementById('modalTitle').textContent =
-                (p.roblox_username || 'ID: ' + p.roblox_user_id) + ' - Player Details';
+                p.discord_display_name || p.discord_username || p.roblox_username || 'Unknown';
 
             var html = '<div class="detail-grid">';
-            html += '<div class="detail-section"><h4>Player Info</h4><div class="detail-list">';
-            html += detailRow('Roblox ID', p.roblox_user_id);
-            html += detailRow('Username', p.roblox_username || '-');
-            html += detailRow('Status', p.is_online ? '<span class="status-badge online">Online</span>' : '<span class="status-badge offline">Offline</span>');
-            html += detailRow('Selected Slot', p.selected_slot || 1);
-            html += detailRow('Created Slots', (p.created_slots || []).join(', '));
-            html += detailRow('Last Seen', new Date(p.last_seen || p.updated_at).toLocaleString());
+
+            // Discord Info
+            html += '<div class="detail-section"><h4>Discord</h4><div class="detail-list">';
+            html += detailRow('Discord ID', p.discord_user_id || '-');
+            html += detailRow('Username', p.discord_username || '-');
+            html += detailRow('Display Name', p.discord_display_name || '-');
+            var dsStatus = p.discord_status === 'online' ? '<span class="status-badge online">Online</span>' :
+                           p.discord_status === 'idle' ? '<span class="status-badge idle">Idle</span>' :
+                           p.discord_status === 'dnd' ? '<span class="status-badge dnd">DND</span>' :
+                           '<span class="status-badge offline">Offline</span>';
+            html += detailRow('Status', dsStatus);
+            if (p.discord_joined_at) html += detailRow('Joined Server', new Date(p.discord_joined_at).toLocaleString());
             html += '</div></div>';
 
+            // Game Info
+            html += '<div class="detail-section"><h4>Game</h4><div class="detail-list">';
+            html += detailRow('Roblox ID', p.roblox_user_id || '-');
+            html += detailRow('Roblox Username', p.roblox_username || '-');
+            html += detailRow('In-Game', p.is_online ? '<span class="status-badge online">Online</span>' : '<span class="status-badge offline">Offline</span>');
+            html += detailRow('Has Played', p.has_played ? 'Yes' : 'No');
+            if (p.last_seen) html += detailRow('Last Seen', new Date(p.last_seen).toLocaleString());
+            html += '</div></div>';
+
+            // Verification
             html += '<div class="detail-section"><h4>Verification</h4><div class="detail-list">';
-            html += detailRow('Discord ID', p.discord_user_id || '-');
             var rVerify = p.roblox_verified ? '<span class="verify-badge roblox">Verified</span>' : '<span class="verify-badge none">Not Verified</span>';
             html += detailRow('Roblox Verify', rVerify);
             var wVerify = p.website_linked ? '<span class="verify-badge full">Linked (' + esc(p.website_username || '') + ')</span>' : '<span class="verify-badge none">Not Linked</span>';
