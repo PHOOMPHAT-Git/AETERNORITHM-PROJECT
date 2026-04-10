@@ -136,8 +136,8 @@
 
         function renderStats(stats) {
             document.getElementById('totalMembers').textContent = stats.total || 0;
-            document.getElementById('robloxVerified').textContent = (stats.roblox_verified || 0) + ' / ' + (stats.total || 0);
-            document.getElementById('webLinked').textContent = (stats.website_linked || 0) + ' / ' + (stats.total || 0);
+            document.getElementById('robloxVerified').textContent = (stats.roblox_verified || 0) + ' / ' + ((stats.total || 0) - (stats.roblox_verified || 0));
+            document.getElementById('webLinked').textContent = (stats.website_linked || 0) + ' / ' + ((stats.total || 0) - (stats.website_linked || 0));
         }
 
         function formatDate(date) {
