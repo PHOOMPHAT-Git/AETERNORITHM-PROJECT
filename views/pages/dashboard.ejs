@@ -344,7 +344,7 @@
             var p = currentPlayers.find(function(pl) { return pl._id === currentPlayerId; });
             if (!p) return;
 
-            var discordName = p.discord_display_name || p.discord_username || 'Unknown';
+            var discordName = p.discord_username || p.discord_display_name || 'Unknown';
             var text = discordName + '\n' +
                 'Discord UserID : ' + (p.discord_user_id || '-') + '\n' +
                 'Roblox Username : ' + (p.roblox_username || '-') + '\n' +
