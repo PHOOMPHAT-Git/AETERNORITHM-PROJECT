@@ -52,6 +52,14 @@
                     <span class="stat-value online" id="webLinked">-</span>
                     <span class="stat-label">Website Linked</span>
                 </div>
+                <div class="stat-card">
+                    <span class="stat-value" id="totalWarned">-</span>
+                    <span class="stat-label">Warned</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value" id="totalBanned">-</span>
+                    <span class="stat-label">Banned</span>
+                </div>
             </div>
 
             <!-- Players Table -->
@@ -68,6 +76,7 @@
                                 <th>Roblox Account</th>
                                 <th>Roblox Verified</th>
                                 <th>Website Linked</th>
+                                <th>Moderation</th>
                             </tr>
                         </thead>
                         <tbody id="playersBody">
@@ -185,6 +194,8 @@
             document.getElementById('totalMembers').textContent = stats.total || 0;
             document.getElementById('robloxVerified').textContent = (stats.roblox_verified || 0) + ' / ' + ((stats.total || 0) - (stats.roblox_verified || 0));
             document.getElementById('webLinked').textContent = (stats.website_linked || 0) + ' / ' + ((stats.total || 0) - (stats.website_linked || 0));
+            document.getElementById('totalWarned').textContent = stats.warned || 0;
+            document.getElementById('totalBanned').textContent = stats.banned || 0;
         }
 
         function formatDate(date) {
@@ -221,11 +232,24 @@
                     ? '<span class="verify-badge full">' + esc(p.website_username) + '</span>'
                     : '<span class="verify-badge none">Not Linked</span>';
 
+                // Moderation status
+                var modHtml = '';
+                if (p.banned) {
+                    modHtml = '<span class="verify-badge banned">Banned</span>';
+                } else if (Number(p.warn_level) === 2) {
+                    modHtml = '<span class="verify-badge warn2">Warn 2</span>';
+                } else if (Number(p.warn_level) === 1) {
+                    modHtml = '<span class="verify-badge warn1">Warn 1</span>';
+                } else {
+                    modHtml = '<span class="verify-badge none">Clean</span>';
+                }
+
                 return '<tr class="clickable-row" data-id="' + p._id + '">' +
                     '<td class="discord-cell">' + discordHtml + '</td>' +
                     '<td class="player-cell">' + robloxHtml + '</td>' +
                     '<td class="muted">' + robloxDateHtml + '</td>' +
                     '<td>' + webDateHtml + '</td>' +
+                    '<td>' + modHtml + '</td>' +
                 '</tr>';
             }).join('');
         }
@@ -296,7 +320,44 @@
 
             html += '</div>';
 
-            document.getElementById('modalBody').innerHTML = html;
+            // Moderation section
+            var currentStatus;
+            if (p.banned) {
+                currentStatus = '<span class="verify-badge banned">Banned</span>';
+            } else if (Number(p.warn_level) === 2) {
+                currentStatus = '<span class="verify-badge warn2">Warn 2</span>';
+            } else if (Number(p.warn_level) === 1) {
+                currentStatus = '<span class="verify-badge warn1">Warn 1</span>';
+            } else {
+                currentStatus = '<span class="verify-badge none">Clean</span>';
+            }
+
+            var reasonText = p.banned ? (p.ban_reason || '') :
+                             (Number(p.warn_level) > 0 ? (p.warn_reason || '') : '');
+            var whenText = p.banned ? (p.banned_at ? new Date(p.banned_at).toLocaleString() : '-') :
+                           (Number(p.warn_level) > 0 && p.warned_at ? new Date(p.warned_at).toLocaleString() : '-');
+
+            var modHtml = '<div class="mod-section">' +
+                '<h4>Moderation</h4>' +
+                '<div class="mod-current">' +
+                    '<span class="mod-label">Current:</span>' + currentStatus +
+                    (reasonText ? ' <span class="mod-label" style="margin-left:10px;">Reason:</span><span>' + esc(reasonText) + '</span>' : '') +
+                    (whenText !== '-' ? ' <span class="mod-label" style="margin-left:10px;">Since:</span><span>' + esc(whenText) + '</span>' : '') +
+                '</div>' +
+                '<div class="mod-reason-wrap">' +
+                    '<input type="text" class="mod-reason" id="modReasonInput" placeholder="Reason (optional)" maxlength="500">' +
+                '</div>' +
+                '<div class="mod-actions" style="margin-top:10px;">' +
+                    '<button type="button" class="btn btn-warn btn-sm" data-mod-action="warn" data-mod-level="1">Warn 1</button>' +
+                    '<button type="button" class="btn btn-warn-2 btn-sm" data-mod-action="warn" data-mod-level="2">Warn 2</button>' +
+                    '<button type="button" class="btn btn-outline btn-sm" data-mod-action="unwarn">Clear Warn</button>' +
+                    '<button type="button" class="btn btn-danger btn-sm" data-mod-action="ban">Ban</button>' +
+                    '<button type="button" class="btn btn-success btn-sm" data-mod-action="unban">Unban</button>' +
+                '</div>' +
+                '<div class="mod-error" id="modError"></div>' +
+            '</div>';
+
+            document.getElementById('modalBody').innerHTML = html + modHtml;
             document.getElementById('modalOverlay').classList.add('active');
         }
 
@@ -330,6 +391,57 @@
         document.getElementById('playersBody').addEventListener('click', function(e) {
             var row = e.target.closest('.clickable-row');
             if (row) showModal(row.dataset.id);
+        });
+
+        // Moderation button delegation
+        document.getElementById('modalBody').addEventListener('click', async function(e) {
+            var btn = e.target.closest('button[data-mod-action]');
+            if (!btn) return;
+
+            var p = currentPlayers.find(function(pl) { return pl._id === currentPlayerId; });
+            if (!p || !p.discord_user_id) return;
+
+            var action = btn.getAttribute('data-mod-action');
+            var level = btn.getAttribute('data-mod-level');
+            var reasonEl = document.getElementById('modReasonInput');
+            var errorEl = document.getElementById('modError');
+            if (errorEl) errorEl.textContent = '';
+
+            var reason = reasonEl ? reasonEl.value.trim() : '';
+
+            // Confirm destructive actions
+            var confirmMsg = null;
+            if (action === 'ban') confirmMsg = 'Ban ' + (p.discord_display_name || p.discord_username) + '?';
+            else if (action === 'unban') confirmMsg = 'Unban ' + (p.discord_display_name || p.discord_username) + '?';
+            if (confirmMsg && !confirm(confirmMsg)) return;
+
+            // Disable all mod buttons during request
+            var allBtns = document.querySelectorAll('#modalBody button[data-mod-action]');
+            allBtns.forEach(function(b) { b.disabled = true; });
+            var original = btn.textContent;
+            btn.textContent = 'Working...';
+
+            try {
+                var payload = { action: action, reason: reason };
+                if (action === 'warn') payload.level = Number(level);
+
+                var res = await fetch('/api/game/players/' + encodeURIComponent(p.discord_user_id) + '/moderation', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                var data = await res.json();
+                if (!res.ok || !data.success) throw new Error(data.error || 'Request failed');
+
+                // Refresh data, close modal
+                document.getElementById('modalOverlay').classList.remove('active');
+                loadPlayers();
+            } catch (err) {
+                if (errorEl) errorEl.textContent = err.message || 'Failed to apply moderation action.';
+            } finally {
+                allBtns.forEach(function(b) { b.disabled = false; });
+                btn.textContent = original;
+            }
         });
 
         document.getElementById('modalClose').addEventListener('click', function() {

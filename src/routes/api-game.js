@@ -210,7 +210,15 @@ router.get('/players', async (req, res) => {
                 // Website verify
                 website_linked: !!webUser,
                 website_username: webUser ? webUser.username : null,
-                website_linked_at: webUser ? webUser.website_linked_at : null
+                website_linked_at: webUser ? webUser.website_linked_at : null,
+                // Moderation (passed through from bot)
+                warn_level: Number(m.warn_level || 0),
+                warn_reason: m.warn_reason || '',
+                warned_at: m.warned_at || null,
+                banned: !!m.banned,
+                ban_reason: m.ban_reason || '',
+                banned_at: m.banned_at || null,
+                is_in_guild: m.is_in_guild !== false
             });
         }
 
@@ -225,6 +233,8 @@ router.get('/players', async (req, res) => {
         const totalAll = allEntries.length;
         const totalRobloxVerified = allEntries.filter(e => e.roblox_verified).length;
         const totalWebLinked = allEntries.filter(e => e.website_linked).length;
+        const totalWarned = allEntries.filter(e => e.warn_level > 0).length;
+        const totalBanned = allEntries.filter(e => e.banned).length;
 
         // Search filter
         if (search) {
@@ -251,7 +261,9 @@ router.get('/players', async (req, res) => {
             stats: {
                 total: totalAll,
                 roblox_verified: totalRobloxVerified,
-                website_linked: totalWebLinked
+                website_linked: totalWebLinked,
+                warned: totalWarned,
+                banned: totalBanned
             }
         });
     } catch (error) {
@@ -394,6 +406,94 @@ router.put('/players/:discordUserId', async (req, res) => {
         });
     } catch (error) {
         console.error('[API-Game] /players/:id PUT ERROR:', error);
+        res.status(500).json({ success: false, error: 'Internal server error' });
+    }
+});
+
+// POST /api/game/players/:discordUserId/moderation
+// Forwards moderation actions to the Discord bot
+// body: { action: 'warn' | 'unwarn' | 'ban' | 'unban', level?: 1|2, reason?: string }
+router.post('/players/:discordUserId/moderation', async (req, res) => {
+    try {
+        if (!req.session.user) {
+            return res.status(401).json({ success: false, error: 'Not authenticated' });
+        }
+
+        const User = require('../models/User');
+        const user = await User.findById(req.session.user.id);
+        if (!user || user.email !== process.env.ADMIN_EMAIL) {
+            return res.status(403).json({ success: false, error: 'Access denied' });
+        }
+
+        const discordUserId = String(req.params.discordUserId || '').trim();
+        if (!discordUserId) {
+            return res.status(400).json({ success: false, error: 'Missing discord_user_id' });
+        }
+
+        const { action, level, reason } = req.body || {};
+        const botApiUrl = process.env.BOT_API_URL;
+        const botApiSecret = process.env.BOT_API_SECRET;
+        if (!botApiUrl || !botApiSecret) {
+            return res.status(500).json({ success: false, error: 'Bot API not configured' });
+        }
+
+        let endpoint = null;
+        const payload = {
+            discord_user_id: discordUserId,
+            reason: String(reason || ''),
+            actor: user.username || user.email || 'dashboard',
+            secret: botApiSecret
+        };
+
+        if (action === 'warn') {
+            const lvl = Number(level);
+            if (![1, 2].includes(lvl)) {
+                return res.status(400).json({ success: false, error: 'Invalid warn level (must be 1 or 2)' });
+            }
+            payload.level = lvl;
+            endpoint = '/moderation/warn';
+        } else if (action === 'unwarn') {
+            endpoint = '/moderation/unwarn';
+        } else if (action === 'ban') {
+            endpoint = '/moderation/ban';
+        } else if (action === 'unban') {
+            endpoint = '/moderation/unban';
+        } else {
+            return res.status(400).json({ success: false, error: 'Invalid action' });
+        }
+
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000);
+            const botRes = await fetch(`${botApiUrl}${endpoint}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+
+            const data = await botRes.json().catch(() => ({}));
+            if (!botRes.ok || !data.success) {
+                console.warn(`[API-Game] Moderation ${action} failed:`, data.error || botRes.status);
+                return res.status(botRes.status || 500).json({
+                    success: false,
+                    error: data.error || `Bot responded with ${botRes.status}`
+                });
+            }
+
+            console.log(`[API-Game] Moderation ${action} OK | ${discordUserId}${level ? ' level ' + level : ''} by ${payload.actor}`);
+
+            // Invalidate cache so dashboard refresh is immediate
+            discordMembersCache = { data: null, fetchedAt: 0 };
+
+            res.json({ success: true, action, data });
+        } catch (err) {
+            console.error('[API-Game] Moderation forward error:', err);
+            res.status(500).json({ success: false, error: err.message || 'Failed to reach bot' });
+        }
+    } catch (error) {
+        console.error('[API-Game] /moderation ERROR:', error);
         res.status(500).json({ success: false, error: 'Internal server error' });
     }
 });
