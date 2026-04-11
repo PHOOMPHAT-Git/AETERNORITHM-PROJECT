@@ -260,4 +260,90 @@ router.get('/players', async (req, res) => {
     }
 });
 
+// PUT /api/game/players/:discordUserId - Update Roblox verify data (admin only)
+router.put('/players/:discordUserId', async (req, res) => {
+    try {
+        if (!req.session.user) {
+            return res.status(401).json({ success: false, error: 'Not authenticated' });
+        }
+
+        const User = require('../models/User');
+        const user = await User.findById(req.session.user.id);
+        if (!user || user.email !== process.env.ADMIN_EMAIL) {
+            return res.status(403).json({ success: false, error: 'Access denied' });
+        }
+
+        const discordUserId = String(req.params.discordUserId || '').trim();
+        if (!discordUserId) {
+            return res.status(400).json({ success: false, error: 'Missing discord_user_id' });
+        }
+
+        const { roblox_user_id, roblox_username, status } = req.body || {};
+        const RobloxVerify = getRobloxVerifyModel();
+
+        // If clearing verification entirely
+        if (roblox_user_id === null || roblox_user_id === '') {
+            await RobloxVerify.deleteOne({ discord_user_id: discordUserId });
+            console.log(`[API-Game] /players/${discordUserId} PUT | CLEARED verify record`);
+            return res.json({ success: true, cleared: true });
+        }
+
+        const parsedRobloxId = Number(roblox_user_id);
+        if (!Number.isFinite(parsedRobloxId) || parsedRobloxId <= 0) {
+            return res.status(400).json({ success: false, error: 'Invalid roblox_user_id' });
+        }
+
+        const normalizedStatus = status === 'unverified' ? 'unverified' : 'verified';
+
+        // Fetch fresh Roblox username from API (best-effort)
+        let finalUsername = (roblox_username || '').trim();
+        try {
+            const rblxRes = await fetch('https://users.roblox.com/v1/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userIds: [parsedRobloxId], excludeBannedUsers: false })
+            });
+            if (rblxRes.ok) {
+                const rblxData = await rblxRes.json();
+                const u = (rblxData.data || [])[0];
+                if (u && u.name) finalUsername = u.name;
+            }
+        } catch (err) {
+            console.warn('[API-Game] Roblox username lookup failed:', err.message);
+        }
+
+        // Need guild_id for upsert — pull from an existing record if available
+        const existing = await RobloxVerify.findOne({ discord_user_id: discordUserId }).lean();
+        const guildId = existing ? existing.guild_id : (process.env.DISCORD_GUILD_ID || 'unknown');
+
+        await RobloxVerify.updateOne(
+            { discord_user_id: discordUserId },
+            {
+                $set: {
+                    roblox_user_id: parsedRobloxId,
+                    roblox_username: finalUsername || null,
+                    status: normalizedStatus,
+                    verified_at: existing ? existing.verified_at : new Date(),
+                    guild_id: guildId
+                }
+            },
+            { upsert: true }
+        );
+
+        console.log(`[API-Game] /players/${discordUserId} PUT | roblox:${parsedRobloxId} (${finalUsername}) status:${normalizedStatus}`);
+        res.json({
+            success: true,
+            data: {
+                discord_user_id: discordUserId,
+                roblox_user_id: parsedRobloxId,
+                roblox_username: finalUsername || null,
+                status: normalizedStatus
+            }
+        });
+    } catch (error) {
+        console.error('[API-Game] /players/:id PUT ERROR:', error);
+        res.status(500).json({ success: false, error: 'Internal server error' });
+    }
+});
+
 module.exports = router;

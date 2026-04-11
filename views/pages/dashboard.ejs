@@ -86,6 +86,52 @@
                         <button class="modal-close" id="modalClose">&times;</button>
                     </div>
                     <div class="modal-body" id="modalBody"></div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline btn-sm" id="copyLayoutBtn">Copy Layout</button>
+                        <button class="btn btn-primary btn-sm" id="editDataBtn">Edit Data</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit Data Modal -->
+            <div class="modal-overlay" id="editModalOverlay">
+                <div class="modal modal-sm">
+                    <div class="modal-header">
+                        <h3 class="modal-title">Edit Player Data</h3>
+                        <button class="modal-close" id="editModalClose">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editForm" class="edit-form">
+                            <div class="form-group">
+                                <label class="form-label">Discord Username</label>
+                                <input type="text" class="form-input" id="editDiscordUsername" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Discord User ID</label>
+                                <input type="text" class="form-input" id="editDiscordUserId" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="editRobloxUsername">Roblox Username</label>
+                                <input type="text" class="form-input" id="editRobloxUsername" placeholder="Auto-filled from Roblox ID on save">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="editRobloxUserId">Roblox User ID</label>
+                                <input type="text" class="form-input" id="editRobloxUserId" placeholder="Leave empty to unlink" inputmode="numeric">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="editStatus">Verification Status</label>
+                                <select class="form-input" id="editStatus">
+                                    <option value="verified">Verified</option>
+                                    <option value="unverified">Unverified</option>
+                                </select>
+                            </div>
+                            <div class="form-error" id="editError"></div>
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-outline btn-sm" id="editCancelBtn">Cancel</button>
+                                <button type="submit" class="btn btn-primary btn-sm" id="editSaveBtn">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -104,6 +150,7 @@
         var totalPages = 1;
         var searchQuery = '';
         var searchTimer = null;
+        var currentPlayerId = null;
 
         async function loadPlayers() {
             var btn = document.getElementById('refreshBtn');
@@ -212,6 +259,7 @@
             var p = currentPlayers.find(function(pl) { return pl._id === playerId; });
             if (!p) return;
 
+            currentPlayerId = playerId;
             document.getElementById('modalTitle').textContent =
                 p.discord_display_name || p.discord_username || p.roblox_username || 'Unknown';
 
@@ -289,6 +337,118 @@
         });
         document.getElementById('modalOverlay').addEventListener('click', function(e) {
             if (e.target === this) this.classList.remove('active');
+        });
+
+        // Copy Layout button
+        document.getElementById('copyLayoutBtn').addEventListener('click', function() {
+            var p = currentPlayers.find(function(pl) { return pl._id === currentPlayerId; });
+            if (!p) return;
+
+            var discordName = p.discord_display_name || p.discord_username || 'Unknown';
+            var text = discordName + '\n' +
+                'Discord UserID : ' + (p.discord_user_id || '-') + '\n' +
+                'Roblox Username : ' + (p.roblox_username || '-') + '\n' +
+                'Roblox UserID : ' + (p.roblox_user_id || '-');
+
+            var btn = this;
+            var original = btn.textContent;
+            function done(ok) {
+                btn.textContent = ok ? 'Copied!' : 'Copy failed';
+                setTimeout(function() { btn.textContent = original; }, 1500);
+            }
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function() { done(true); }, function() { done(false); });
+            } else {
+                // Fallback
+                var ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                try { document.execCommand('copy'); done(true); } catch(e) { done(false); }
+                document.body.removeChild(ta);
+            }
+        });
+
+        // Edit Data button — open edit modal
+        document.getElementById('editDataBtn').addEventListener('click', function() {
+            var p = currentPlayers.find(function(pl) { return pl._id === currentPlayerId; });
+            if (!p) return;
+
+            document.getElementById('editDiscordUsername').value = p.discord_display_name || p.discord_username || '';
+            document.getElementById('editDiscordUserId').value = p.discord_user_id || '';
+            document.getElementById('editRobloxUsername').value = p.roblox_username || '';
+            document.getElementById('editRobloxUserId').value = p.roblox_user_id || '';
+            document.getElementById('editStatus').value = p.roblox_verified ? 'verified' : 'unverified';
+            document.getElementById('editError').textContent = '';
+
+            document.getElementById('editModalOverlay').classList.add('active');
+        });
+
+        // Edit modal close handlers
+        document.getElementById('editModalClose').addEventListener('click', function() {
+            document.getElementById('editModalOverlay').classList.remove('active');
+        });
+        document.getElementById('editCancelBtn').addEventListener('click', function() {
+            document.getElementById('editModalOverlay').classList.remove('active');
+        });
+        document.getElementById('editModalOverlay').addEventListener('click', function(e) {
+            if (e.target === this) this.classList.remove('active');
+        });
+
+        // Submit edit form
+        document.getElementById('editForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            var p = currentPlayers.find(function(pl) { return pl._id === currentPlayerId; });
+            if (!p || !p.discord_user_id) return;
+
+            var errorEl = document.getElementById('editError');
+            var saveBtn = document.getElementById('editSaveBtn');
+            errorEl.textContent = '';
+
+            var robloxIdRaw = document.getElementById('editRobloxUserId').value.trim();
+            var robloxUsername = document.getElementById('editRobloxUsername').value.trim();
+            var status = document.getElementById('editStatus').value;
+
+            var payload;
+            if (robloxIdRaw === '') {
+                payload = { roblox_user_id: null };
+            } else {
+                if (!/^\d+$/.test(robloxIdRaw)) {
+                    errorEl.textContent = 'Roblox User ID must be a positive number.';
+                    return;
+                }
+                payload = {
+                    roblox_user_id: Number(robloxIdRaw),
+                    roblox_username: robloxUsername,
+                    status: status
+                };
+            }
+
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+
+            try {
+                var res = await fetch('/api/game/players/' + encodeURIComponent(p.discord_user_id), {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                var data = await res.json();
+                if (!res.ok || !data.success) {
+                    throw new Error(data.error || 'Request failed');
+                }
+                document.getElementById('editModalOverlay').classList.remove('active');
+                document.getElementById('modalOverlay').classList.remove('active');
+                loadPlayers();
+            } catch (err) {
+                errorEl.textContent = err.message || 'Failed to save changes.';
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Save Changes';
+            }
         });
 
         // Auto refresh every 30s
