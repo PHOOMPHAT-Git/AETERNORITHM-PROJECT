@@ -285,6 +285,31 @@ select.form-input option:hover {
     background: linear-gradient(#6366f1, #6366f1);
     color: #ffffff;
 }
+.status-toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+.status-toggle-btn {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.88rem;
+    color: #a1a1aa;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.status-toggle-btn:hover {
+    border-color: rgba(255,255,255,0.16);
+    color: #e4e4e7;
+}
+.status-toggle-btn.active {
+    background: rgba(99,102,241,0.15);
+    border-color: rgba(99,102,241,0.5);
+    color: #c7d2fe;
+}
 .form-error {
     font-size: 0.8rem;
     color: #ef4444;

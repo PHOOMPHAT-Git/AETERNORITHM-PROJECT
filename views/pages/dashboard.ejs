@@ -119,11 +119,11 @@
                                 <input type="text" class="form-input" id="editRobloxUserId" placeholder="Leave empty to unlink" inputmode="numeric">
                             </div>
                             <div class="form-group">
-                                <label class="form-label" for="editStatus">Verification Status</label>
-                                <select class="form-input" id="editStatus">
-                                    <option value="verified">Verified</option>
-                                    <option value="unverified">Unverified</option>
-                                </select>
+                                <label class="form-label">Verification Status</label>
+                                <div class="status-toggle" id="editStatus" role="radiogroup" aria-label="Verification Status">
+                                    <button type="button" class="status-toggle-btn" data-value="verified" role="radio" aria-checked="false">Verified</button>
+                                    <button type="button" class="status-toggle-btn" data-value="unverified" role="radio" aria-checked="false">Unverified</button>
+                                </div>
                             </div>
                             <div class="form-error" id="editError"></div>
                             <div class="form-actions">
@@ -372,6 +372,25 @@
             }
         });
 
+        // Verification status toggle helpers
+        function setStatusToggle(value) {
+            var btns = document.querySelectorAll('#editStatus .status-toggle-btn');
+            btns.forEach(function(b) {
+                var active = b.getAttribute('data-value') === value;
+                b.classList.toggle('active', active);
+                b.setAttribute('aria-checked', active ? 'true' : 'false');
+            });
+        }
+        function getStatusToggle() {
+            var active = document.querySelector('#editStatus .status-toggle-btn.active');
+            return active ? active.getAttribute('data-value') : 'unverified';
+        }
+        document.querySelectorAll('#editStatus .status-toggle-btn').forEach(function(b) {
+            b.addEventListener('click', function() {
+                setStatusToggle(b.getAttribute('data-value'));
+            });
+        });
+
         // Edit Data button — open edit modal
         document.getElementById('editDataBtn').addEventListener('click', function() {
             var p = currentPlayers.find(function(pl) { return pl._id === currentPlayerId; });
@@ -381,7 +400,7 @@
             document.getElementById('editDiscordUserId').value = p.discord_user_id || '';
             document.getElementById('editRobloxUsername').value = p.roblox_username || '';
             document.getElementById('editRobloxUserId').value = p.roblox_user_id || '';
-            document.getElementById('editStatus').value = p.roblox_verified ? 'verified' : 'unverified';
+            setStatusToggle(p.roblox_verified ? 'verified' : 'unverified');
             document.getElementById('editError').textContent = '';
 
             document.getElementById('editModalOverlay').classList.add('active');
@@ -410,7 +429,7 @@
 
             var robloxIdRaw = document.getElementById('editRobloxUserId').value.trim();
             var robloxUsername = document.getElementById('editRobloxUsername').value.trim();
-            var status = document.getElementById('editStatus').value;
+            var status = getStatusToggle();
 
             var payload;
             if (robloxIdRaw === '') {
