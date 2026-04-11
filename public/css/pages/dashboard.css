@@ -264,6 +264,27 @@ a { text-decoration: none; color: inherit; }
 .form-input:focus { border-color: rgba(99,102,241,0.5); }
 .form-input:disabled { opacity: 0.6; cursor: not-allowed; }
 .form-input::placeholder { color: #52525a; }
+select.form-input {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'><path d='M1 1.5L6 6.5L11 1.5' stroke='%2371717a' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+    cursor: pointer;
+}
+select.form-input:hover { border-color: rgba(255,255,255,0.16); }
+select.form-input option {
+    background: #18181b;
+    color: #e4e4e7;
+    padding: 10px;
+}
+select.form-input option:checked,
+select.form-input option:hover {
+    background: linear-gradient(#6366f1, #6366f1);
+    color: #ffffff;
+}
 .form-error {
     font-size: 0.8rem;
     color: #ef4444;

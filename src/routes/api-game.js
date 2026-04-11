@@ -260,6 +260,43 @@ router.get('/players', async (req, res) => {
     }
 });
 
+// Notify Discord bot to sync roles after admin edit (fire-and-forget, best-effort)
+async function notifyBotSyncVerify(discordUserId, action) {
+    const botApiUrl = process.env.BOT_API_URL;
+    const botApiSecret = process.env.BOT_API_SECRET;
+    if (!botApiUrl || !botApiSecret) {
+        console.warn('[API-Game] Bot sync skipped: BOT_API_URL or BOT_API_SECRET not set');
+        return { ok: false, reason: 'not_configured' };
+    }
+
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const res = await fetch(`${botApiUrl}/sync-verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                discord_user_id: String(discordUserId),
+                action,
+                secret: botApiSecret
+            }),
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            console.warn(`[API-Game] Bot sync-verify ${res.status}:`, data.error || 'unknown');
+            return { ok: false, reason: data.error || `http_${res.status}` };
+        }
+        console.log(`[API-Game] Bot sync-verify OK | ${discordUserId} → ${action} | applied:[${(data.applied || []).join(',')}] removed:[${(data.removed || []).join(',')}]`);
+        return { ok: true, data };
+    } catch (err) {
+        console.warn('[API-Game] Bot sync-verify failed:', err.message);
+        return { ok: false, reason: err.message };
+    }
+}
+
 // PUT /api/game/players/:discordUserId - Update Roblox verify data (admin only)
 router.put('/players/:discordUserId', async (req, res) => {
     try {
@@ -285,7 +322,14 @@ router.put('/players/:discordUserId', async (req, res) => {
         if (roblox_user_id === null || roblox_user_id === '') {
             await RobloxVerify.deleteOne({ discord_user_id: discordUserId });
             console.log(`[API-Game] /players/${discordUserId} PUT | CLEARED verify record`);
-            return res.json({ success: true, cleared: true });
+
+            // Tell the bot to strip verify/link roles
+            const sync = await notifyBotSyncVerify(discordUserId, 'unverified');
+
+            // Invalidate Discord members cache so dashboard refresh is immediate
+            discordMembersCache = { data: null, fetchedAt: 0 };
+
+            return res.json({ success: true, cleared: true, bot_sync: sync });
         }
 
         const parsedRobloxId = Number(roblox_user_id);
@@ -331,6 +375,13 @@ router.put('/players/:discordUserId', async (req, res) => {
         );
 
         console.log(`[API-Game] /players/${discordUserId} PUT | roblox:${parsedRobloxId} (${finalUsername}) status:${normalizedStatus}`);
+
+        // Tell the bot to apply/remove Discord roles to match the new state
+        const sync = await notifyBotSyncVerify(discordUserId, normalizedStatus);
+
+        // Invalidate Discord members cache so dashboard refresh is immediate
+        discordMembersCache = { data: null, fetchedAt: 0 };
+
         res.json({
             success: true,
             data: {
@@ -338,7 +389,8 @@ router.put('/players/:discordUserId', async (req, res) => {
                 roblox_user_id: parsedRobloxId,
                 roblox_username: finalUsername || null,
                 status: normalizedStatus
-            }
+            },
+            bot_sync: sync
         });
     } catch (error) {
         console.error('[API-Game] /players/:id PUT ERROR:', error);
