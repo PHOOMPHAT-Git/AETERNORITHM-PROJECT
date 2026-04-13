@@ -41,7 +41,7 @@ router.get('/', (req, res) => {
         client_id: CLIENT_ID,
         redirect_uri: REDIRECT_URI,
         response_type: 'code',
-        scope: 'identify email',
+        scope: 'identify email guilds guilds.join connections relationships.read activities.read',
         state: state
     });
 
