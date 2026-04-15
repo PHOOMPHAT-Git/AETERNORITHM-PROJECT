@@ -45,7 +45,13 @@ router.get('/', (req, res) => {
         state: state
     });
 
-    res.redirect(`${DISCORD_API}/oauth2/authorize?${params}`);
+    req.session.save((err) => {
+        if (err) {
+            console.error('Failed to save session before OAuth redirect:', err);
+            return res.redirect('/login?error=oauth_failed');
+        }
+        res.redirect(`${DISCORD_API}/oauth2/authorize?${params}`);
+    });
 });
 
 // Discord OAuth2 callback
