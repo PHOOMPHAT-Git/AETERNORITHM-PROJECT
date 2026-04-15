@@ -59,12 +59,28 @@ router.get('/', (req, res) => {
 router.get('/callback', async (req, res) => {
     const { code, state } = req.query;
 
-    console.log('[OAuth Callback] state from query:', state);
-    console.log('[OAuth Callback] state from session:', req.session.oauth_state);
+    if (!code) {
+        console.error('[OAuth Callback] Missing authorization code');
+        return res.redirect('/login?error=missing_code');
+    }
+
+    // Reload session from store to ensure fresh data
+    await new Promise((resolve, reject) => {
+        req.session.reload((err) => {
+            if (err) reject(err);
+            else resolve();
+        });
+    }).catch(err => {
+        console.error('[OAuth Callback] Session reload error:', err);
+    });
+
+    console.log('[OAuth Callback] state from query:', JSON.stringify(state));
+    console.log('[OAuth Callback] state from session:', JSON.stringify(req.session.oauth_state));
     console.log('[OAuth Callback] session ID:', req.sessionID);
 
-    if (!code || !state || state !== req.session.oauth_state) {
-        console.error('[OAuth Callback] State mismatch! query:', state, 'session:', req.session.oauth_state);
+    const sessionState = req.session.oauth_state;
+    if (!state || !sessionState || state !== sessionState) {
+        console.error('[OAuth Callback] State mismatch! query:', JSON.stringify(state), 'session:', JSON.stringify(sessionState), 'types:', typeof state, typeof sessionState);
         return res.redirect('/login?error=invalid_state');
     }
 
