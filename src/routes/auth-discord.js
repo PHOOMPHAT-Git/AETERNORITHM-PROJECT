@@ -41,7 +41,7 @@ router.get('/', (req, res) => {
         client_id: CLIENT_ID,
         redirect_uri: REDIRECT_URI,
         response_type: 'code',
-        scope: 'identify email guilds guilds.join connections relationships.read activities.read',
+        scope: 'identify email guilds guilds.join',
         state: state
     });
 
@@ -61,6 +61,7 @@ router.get('/callback', async (req, res) => {
 
     if (!code) {
         console.error('[OAuth Callback] Missing authorization code');
+        console.error('[OAuth Callback] Full query params:', JSON.stringify(req.query));
         return res.redirect('/login?error=missing_code');
     }
 
