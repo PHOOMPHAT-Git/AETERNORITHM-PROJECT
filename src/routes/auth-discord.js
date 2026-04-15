@@ -50,6 +50,7 @@ router.get('/', (req, res) => {
             console.error('Failed to save session before OAuth redirect:', err);
             return res.redirect('/login?error=oauth_failed');
         }
+        console.log('[OAuth Start] session ID:', req.sessionID, 'state:', state);
         res.redirect(`${DISCORD_API}/oauth2/authorize?${params}`);
     });
 });
@@ -58,7 +59,12 @@ router.get('/', (req, res) => {
 router.get('/callback', async (req, res) => {
     const { code, state } = req.query;
 
+    console.log('[OAuth Callback] state from query:', state);
+    console.log('[OAuth Callback] state from session:', req.session.oauth_state);
+    console.log('[OAuth Callback] session ID:', req.sessionID);
+
     if (!code || !state || state !== req.session.oauth_state) {
+        console.error('[OAuth Callback] State mismatch! query:', state, 'session:', req.session.oauth_state);
         return res.redirect('/login?error=invalid_state');
     }
 
