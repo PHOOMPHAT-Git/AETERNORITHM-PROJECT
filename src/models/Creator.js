@@ -9,14 +9,9 @@ const CreatorSchema = new mongoose.Schema({
     banner: { type: String, default: '', trim: true },
     followers: { type: String, default: '', trim: true },
     subscribers: { type: Number, default: 0, index: true },
-    order: { type: Number, default: 0 },
-    created_at: { type: Date, default: Date.now },
-    updated_at: { type: Date, default: Date.now }
-});
-
-CreatorSchema.pre('save', function(next) {
-    this.updated_at = new Date();
-    next();
+    order: { type: Number, default: 0 }
+}, {
+    timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
 });
 
 module.exports = mongoose.models.Creator || mongoose.model('Creator', CreatorSchema, 'creators');

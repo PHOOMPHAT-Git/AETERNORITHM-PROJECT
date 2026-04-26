@@ -22,13 +22,8 @@ const ServiceStatusSchema = new mongoose.Schema({
         uptime: { type: Number, default: 0 },
         message: { type: String, default: '' }
     },
-    created_at: { type: Date, default: Date.now },
-    updated_at: { type: Date, default: Date.now }
-});
-
-ServiceStatusSchema.pre('save', function(next) {
-    this.updated_at = Date.now();
-    next();
+}, {
+    timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
 });
 
 module.exports = mongoose.models.ServiceStatus || mongoose.model('ServiceStatus', ServiceStatusSchema, 'service_status');
