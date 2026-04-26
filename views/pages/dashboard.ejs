@@ -126,10 +126,6 @@
                                 <input type="text" class="form-input" id="creatorBanner" placeholder="https://... (optional)">
                             </div>
                             <div class="form-group">
-                                <label class="form-label" for="creatorFollowers">Followers (display text)</label>
-                                <input type="text" class="form-input" id="creatorFollowers" placeholder="12K">
-                            </div>
-                            <div class="form-group">
                                 <label class="form-label" for="creatorOrder">Order</label>
                                 <input type="number" class="form-input" id="creatorOrder" value="0" step="1">
                             </div>
@@ -722,7 +718,6 @@
             document.getElementById('creatorUrl').value = creator ? (creator.url || '') : '';
             document.getElementById('creatorAvatar').value = creator ? (creator.avatar || '') : '';
             document.getElementById('creatorBanner').value = creator ? (creator.banner || '') : '';
-            document.getElementById('creatorFollowers').value = creator ? (creator.followers || '') : '';
             document.getElementById('creatorOrder').value = creator ? (creator.order != null ? creator.order : 0) : 0;
             setCreatorPlatform(creator ? creator.platform : 'youtube');
             document.getElementById('creatorError').textContent = '';
@@ -779,7 +774,6 @@
                 url: document.getElementById('creatorUrl').value.trim(),
                 avatar: document.getElementById('creatorAvatar').value.trim(),
                 banner: document.getElementById('creatorBanner').value.trim(),
-                followers: document.getElementById('creatorFollowers').value.trim(),
                 subscribers: Number(creatorEditingSubscribers) || 0,
                 order: Number(document.getElementById('creatorOrder').value) || 0
             };
