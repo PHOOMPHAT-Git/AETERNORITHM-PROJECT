@@ -115,11 +115,19 @@
                             </div>
                             <div class="form-group">
                                 <label class="form-label" for="creatorUrl">Profile URL</label>
-                                <input type="url" class="form-input" id="creatorUrl" placeholder="https://..." required>
+                                <div class="card-header-actions" style="gap:8px;">
+                                    <input type="url" class="form-input" id="creatorUrl" placeholder="https://www.youtube.com/@channel" required style="flex:1;">
+                                    <button type="button" class="btn btn-outline btn-sm" id="creatorFetchBtn">Fetch</button>
+                                </div>
+                                <p class="form-hint" id="creatorFetchHint" style="margin-top:6px;font-size:12px;opacity:0.75;">Paste a YouTube channel URL and click Fetch to auto-fill the rest.</p>
                             </div>
                             <div class="form-group">
                                 <label class="form-label" for="creatorAvatar">Avatar URL or Path</label>
                                 <input type="text" class="form-input" id="creatorAvatar" placeholder="/images/foo.png or https://...">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="creatorBanner">Banner URL or Path</label>
+                                <input type="text" class="form-input" id="creatorBanner" placeholder="https://... (optional)">
                             </div>
                             <div class="form-group">
                                 <label class="form-label" for="creatorFollowers">Followers (display text)</label>
@@ -637,6 +645,7 @@
         // ====================== Creators (Admin) ======================
         var creatorsCache = [];
         var creatorEditingId = null;
+        var creatorEditingSubscribers = 0;
         var creatorSearchQuery = '';
 
         async function loadCreators() {
@@ -711,15 +720,18 @@
 
         function openCreatorModal(creator) {
             creatorEditingId = creator ? creator._id : null;
+            creatorEditingSubscribers = creator && Number.isFinite(creator.subscribers) ? creator.subscribers : 0;
             document.getElementById('creatorModalTitle').textContent = creator ? 'Edit Creator' : 'Add Creator';
             document.getElementById('creatorName').value = creator ? (creator.name || '') : '';
             document.getElementById('creatorHandle').value = creator ? (creator.handle || '') : '';
             document.getElementById('creatorUrl').value = creator ? (creator.url || '') : '';
             document.getElementById('creatorAvatar').value = creator ? (creator.avatar || '') : '';
+            document.getElementById('creatorBanner').value = creator ? (creator.banner || '') : '';
             document.getElementById('creatorFollowers').value = creator ? (creator.followers || '') : '';
             document.getElementById('creatorOrder').value = creator ? (creator.order != null ? creator.order : 0) : 0;
             setCreatorPlatform(creator ? creator.platform : 'youtube');
             document.getElementById('creatorError').textContent = '';
+            document.getElementById('creatorFetchHint').textContent = 'Paste a YouTube channel URL and click Fetch to auto-fill the rest.';
             document.getElementById('creatorDeleteBtn').hidden = !creator;
             document.getElementById('creatorModalOverlay').classList.add('active');
         }
@@ -754,6 +766,40 @@
             renderCreatorsList();
         });
 
+        document.getElementById('creatorFetchBtn').addEventListener('click', async function() {
+            var btn = this;
+            var url = document.getElementById('creatorUrl').value.trim();
+            var hint = document.getElementById('creatorFetchHint');
+            var errorEl = document.getElementById('creatorError');
+            errorEl.textContent = '';
+            if (!url) { errorEl.textContent = 'Enter a URL first.'; return; }
+            btn.disabled = true;
+            var prev = btn.textContent;
+            btn.textContent = 'Fetching...';
+            hint.textContent = 'Fetching channel details...';
+            try {
+                var res = await fetch('/api/creators/fetch?url=' + encodeURIComponent(url));
+                var data = await res.json();
+                if (!res.ok || !data.success) throw new Error(data.error || 'Fetch failed');
+                var d = data.data || {};
+                document.getElementById('creatorName').value = d.name || '';
+                document.getElementById('creatorHandle').value = d.handle || '';
+                document.getElementById('creatorUrl').value = d.url || url;
+                document.getElementById('creatorAvatar').value = d.avatar || '';
+                document.getElementById('creatorBanner').value = d.banner || '';
+                document.getElementById('creatorFollowers').value = d.followers || '';
+                creatorEditingSubscribers = Number(d.subscribers) || 0;
+                if (d.platform) setCreatorPlatform(d.platform);
+                hint.textContent = 'Loaded ' + (d.name || 'channel') + ' (' + (creatorEditingSubscribers.toLocaleString()) + ' subscribers).';
+            } catch (err) {
+                hint.textContent = 'Paste a YouTube channel URL and click Fetch to auto-fill the rest.';
+                errorEl.textContent = err.message || 'Failed to fetch channel.';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = prev;
+            }
+        });
+
         document.getElementById('creatorForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             var errorEl = document.getElementById('creatorError');
@@ -772,7 +818,9 @@
                 platform: platform,
                 url: document.getElementById('creatorUrl').value.trim(),
                 avatar: document.getElementById('creatorAvatar').value.trim(),
+                banner: document.getElementById('creatorBanner').value.trim(),
                 followers: document.getElementById('creatorFollowers').value.trim(),
+                subscribers: Number(creatorEditingSubscribers) || 0,
                 order: Number(document.getElementById('creatorOrder').value) || 0
             };
 

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Creator = require('../models/Creator');
 const User = require('../models/User');
+const { fetchYouTubeChannel, parseYouTubeUrl, parseFollowersString } = require('../services/youtube');
 
 async function requireAdmin(req, res, next) {
     if (!req.session.user) {
@@ -49,6 +50,14 @@ function buildPayload(body) {
     let order = Number(body.order);
     if (!Number.isFinite(order)) order = 0;
 
+    const followersText = String(body.followers || '').trim();
+    let subscribers = Number(body.subscribers);
+    if (!Number.isFinite(subscribers) || subscribers <= 0) {
+        subscribers = parseFollowersString(followersText);
+    } else {
+        subscribers = Math.round(subscribers);
+    }
+
     return {
         data: {
             name,
@@ -57,7 +66,8 @@ function buildPayload(body) {
             url,
             avatar,
             banner,
-            followers: String(body.followers || '').trim(),
+            followers: followersText,
+            subscribers,
             order
         }
     };
@@ -65,11 +75,26 @@ function buildPayload(body) {
 
 router.get('/', requireAdmin, async (req, res) => {
     try {
-        const creators = await Creator.find({}).sort({ order: 1, created_at: 1 }).lean();
+        const creators = await Creator.find({}).sort({ subscribers: -1, order: 1, created_at: 1 }).lean();
         res.json({ success: true, creators });
     } catch (err) {
         console.error('[API-Creators] GET error:', err);
         res.status(500).json({ success: false, error: 'Internal server error' });
+    }
+});
+
+router.get('/fetch', requireAdmin, async (req, res) => {
+    const url = sanitizeUrl(req.query.url);
+    if (!url) return res.status(400).json({ success: false, error: 'URL is required' });
+    if (!parseYouTubeUrl(url)) {
+        return res.status(400).json({ success: false, error: 'Only YouTube channel URLs are supported for auto-fetch' });
+    }
+    try {
+        const data = await fetchYouTubeChannel(url);
+        res.json({ success: true, data });
+    } catch (err) {
+        console.error('[API-Creators] Fetch error:', err.message);
+        res.status(502).json({ success: false, error: err.message || 'Failed to fetch channel' });
     }
 });
 

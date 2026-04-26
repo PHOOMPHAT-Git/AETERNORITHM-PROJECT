@@ -8,6 +8,7 @@ const CreatorSchema = new mongoose.Schema({
     avatar: { type: String, default: '', trim: true },
     banner: { type: String, default: '', trim: true },
     followers: { type: String, default: '', trim: true },
+    subscribers: { type: Number, default: 0, index: true },
     order: { type: Number, default: 0 },
     created_at: { type: Date, default: Date.now },
     updated_at: { type: Date, default: Date.now }
