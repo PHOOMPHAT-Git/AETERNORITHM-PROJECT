@@ -2,7 +2,20 @@ const express = require('express');
 const router = express.Router();
 const Creator = require('../models/Creator');
 const User = require('../models/User');
-const { fetchYouTubeChannel, parseYouTubeUrl, parseFollowersString } = require('../services/youtube');
+function parseFollowersString(value) {
+    if (typeof value === 'number' && Number.isFinite(value)) return Math.max(0, Math.round(value));
+    const raw = String(value || '').trim().replace(/[, ]/g, '');
+    if (!raw) return 0;
+    const m = raw.match(/^([\d.]+)\s*([kmb])?$/i);
+    if (!m) return 0;
+    const n = parseFloat(m[1]);
+    if (!Number.isFinite(n)) return 0;
+    const suffix = (m[2] || '').toLowerCase();
+    if (suffix === 'k') return Math.round(n * 1e3);
+    if (suffix === 'm') return Math.round(n * 1e6);
+    if (suffix === 'b') return Math.round(n * 1e9);
+    return Math.round(n);
+}
 
 async function requireAdmin(req, res, next) {
     if (!req.session.user) {
@@ -80,21 +93,6 @@ router.get('/', requireAdmin, async (req, res) => {
     } catch (err) {
         console.error('[API-Creators] GET error:', err);
         res.status(500).json({ success: false, error: 'Internal server error' });
-    }
-});
-
-router.get('/fetch', requireAdmin, async (req, res) => {
-    const url = sanitizeUrl(req.query.url);
-    if (!url) return res.status(400).json({ success: false, error: 'URL is required' });
-    if (!parseYouTubeUrl(url)) {
-        return res.status(400).json({ success: false, error: 'Only YouTube channel URLs are supported for auto-fetch' });
-    }
-    try {
-        const data = await fetchYouTubeChannel(url);
-        res.json({ success: true, data });
-    } catch (err) {
-        console.error('[API-Creators] Fetch error:', err.message);
-        res.status(502).json({ success: false, error: err.message || 'Failed to fetch channel' });
     }
 });
 

@@ -115,11 +115,7 @@
                             </div>
                             <div class="form-group">
                                 <label class="form-label" for="creatorUrl">Profile URL</label>
-                                <div class="card-header-actions" style="gap:8px;">
-                                    <input type="url" class="form-input" id="creatorUrl" placeholder="https://www.youtube.com/@channel" required style="flex:1;">
-                                    <button type="button" class="btn btn-outline btn-sm" id="creatorFetchBtn">Fetch</button>
-                                </div>
-                                <p class="form-hint" id="creatorFetchHint" style="margin-top:6px;font-size:12px;opacity:0.75;">Paste a YouTube channel URL and click Fetch to auto-fill the rest.</p>
+                                <input type="url" class="form-input" id="creatorUrl" placeholder="https://www.youtube.com/@channel" required>
                             </div>
                             <div class="form-group">
                                 <label class="form-label" for="creatorAvatar">Avatar URL or Path</label>
@@ -683,13 +679,12 @@
                     ? '<img class="creator-row-avatar" src="' + esc(c.avatar) + '" alt="">'
                     : '<span class="creator-row-avatar fallback">' + esc((c.name || '?').charAt(0)) + '</span>';
                 var platformBadge = '<span class="platform-badge platform-' + esc(c.platform) + '">' + esc(c.platform) + '</span>';
-                var followers = c.followers ? '<span class="muted">· ' + esc(c.followers) + ' followers</span>' : '';
                 return '<div class="creator-row" data-id="' + esc(c._id) + '">' +
                     '<div class="creator-row-main">' +
                         avatarHtml +
                         '<div class="creator-row-info">' +
                             '<div class="creator-row-name">' + esc(c.name) + ' ' + platformBadge + '</div>' +
-                            '<div class="creator-row-meta"><span class="muted">' + esc(c.handle) + '</span> ' + followers + '</div>' +
+                            '<div class="creator-row-meta"><span class="muted">' + esc(c.handle) + '</span></div>' +
                         '</div>' +
                     '</div>' +
                     '<div class="creator-row-actions">' +
@@ -731,7 +726,6 @@
             document.getElementById('creatorOrder').value = creator ? (creator.order != null ? creator.order : 0) : 0;
             setCreatorPlatform(creator ? creator.platform : 'youtube');
             document.getElementById('creatorError').textContent = '';
-            document.getElementById('creatorFetchHint').textContent = 'Paste a YouTube channel URL and click Fetch to auto-fill the rest.';
             document.getElementById('creatorDeleteBtn').hidden = !creator;
             document.getElementById('creatorModalOverlay').classList.add('active');
         }
@@ -764,40 +758,6 @@
         document.getElementById('creatorSearchInput').addEventListener('input', function() {
             creatorSearchQuery = this.value.trim().toLowerCase();
             renderCreatorsList();
-        });
-
-        document.getElementById('creatorFetchBtn').addEventListener('click', async function() {
-            var btn = this;
-            var url = document.getElementById('creatorUrl').value.trim();
-            var hint = document.getElementById('creatorFetchHint');
-            var errorEl = document.getElementById('creatorError');
-            errorEl.textContent = '';
-            if (!url) { errorEl.textContent = 'Enter a URL first.'; return; }
-            btn.disabled = true;
-            var prev = btn.textContent;
-            btn.textContent = 'Fetching...';
-            hint.textContent = 'Fetching channel details...';
-            try {
-                var res = await fetch('/api/creators/fetch?url=' + encodeURIComponent(url));
-                var data = await res.json();
-                if (!res.ok || !data.success) throw new Error(data.error || 'Fetch failed');
-                var d = data.data || {};
-                document.getElementById('creatorName').value = d.name || '';
-                document.getElementById('creatorHandle').value = d.handle || '';
-                document.getElementById('creatorUrl').value = d.url || url;
-                document.getElementById('creatorAvatar').value = d.avatar || '';
-                document.getElementById('creatorBanner').value = d.banner || '';
-                document.getElementById('creatorFollowers').value = d.followers || '';
-                creatorEditingSubscribers = Number(d.subscribers) || 0;
-                if (d.platform) setCreatorPlatform(d.platform);
-                hint.textContent = 'Loaded ' + (d.name || 'channel') + ' (' + (creatorEditingSubscribers.toLocaleString()) + ' subscribers).';
-            } catch (err) {
-                hint.textContent = 'Paste a YouTube channel URL and click Fetch to auto-fill the rest.';
-                errorEl.textContent = err.message || 'Failed to fetch channel.';
-            } finally {
-                btn.disabled = false;
-                btn.textContent = prev;
-            }
         });
 
         document.getElementById('creatorForm').addEventListener('submit', async function(e) {
