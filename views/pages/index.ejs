@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aeternorithm Project</title>
     <link rel="stylesheet" href="/css/pages/index.css">
+    <link rel="stylesheet" href="/css/components/navbar.css">
     <link rel="stylesheet" href="/css/components/scrollbar.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,50 +13,7 @@
 </head>
 <body>
 
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="container nav-content">
-            <a href="/" class="nav-logo">Aeternorithm</a>
-            <div class="nav-menu">
-                <ul class="nav-links">
-                    <li><a href="/about">About</a></li>
-                    <li><a href="/terms">Terms</a></li>
-                    <li><a href="/privacy">Privacy</a></li>
-                </ul>
-                <div class="nav-divider"></div>
-                <ul class="nav-links nav-auth">
-                    <% if (user) { %>
-                        <li><a href="/account"><%= user.username %></a></li>
-                    <% } else { %>
-                        <li><a href="/login">Login</a></li>
-                    <% } %>
-                </ul>
-            </div>
-            <button class="nav-hamburger" id="hamburger">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-        </div>
-    </nav>
-
-    <!-- Mobile Menu -->
-    <div class="nav-menu-mobile" id="mobileMenu">
-        <ul class="nav-links">
-            <li><a href="/about">About</a></li>
-            <li><a href="/terms">Terms</a></li>
-            <li><a href="/privacy">Privacy</a></li>
-        </ul>
-        <div class="nav-divider"></div>
-        <ul class="nav-links nav-auth">
-            <% if (user) { %>
-                <li><a href="/account"><%= user.username %></a></li>
-            <% } else { %>
-                <li><a href="/login">Login</a></li>
-                <li><a href="/register">Register</a></li>
-            <% } %>
-        </ul>
-    </div>
+    <%- include('../partials/navbar', { user: typeof user !== 'undefined' ? user : null, active: 'home' }) %>
 
     <!-- Hero Section -->
     <section class="hero">
@@ -92,20 +50,7 @@
         </div>
     </footer>
 
-    <script>
-        document.getElementById('hamburger').addEventListener('click', function() {
-            this.classList.toggle('active');
-            document.getElementById('mobileMenu').classList.toggle('open');
-            document.body.classList.toggle('menu-open');
-        });
-        document.querySelectorAll('.nav-menu-mobile a').forEach(function(a) {
-            a.addEventListener('click', function() {
-                document.getElementById('hamburger').classList.remove('active');
-                document.getElementById('mobileMenu').classList.remove('open');
-                document.body.classList.remove('menu-open');
-            });
-        });
-    </script>
+    <script src="/js/navbar.js"></script>
     <script src="/js/security.js"></script>
 </body>
 </html>

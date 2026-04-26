@@ -5,17 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aeternorithm Project</title>
     <link rel="stylesheet" href="/css/pages/terms.css">
+    <link rel="stylesheet" href="/css/components/navbar.css">
     <link rel="stylesheet" href="/css/components/scrollbar.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <nav class="navbar">
-        <div class="container nav-content">
-            <a href="/" class="nav-logo">Aeternorithm</a>
-        </div>
-    </nav>
+    <%- include('../partials/navbar', { user: typeof user !== 'undefined' ? user : null, active: 'terms' }) %>
 
     <main class="page">
         <div class="container">
@@ -80,6 +77,7 @@
             </section>
         </div>
     </main>
+    <script src="/js/navbar.js"></script>
     <script src="/js/security.js"></script>
 </body>
 </html>

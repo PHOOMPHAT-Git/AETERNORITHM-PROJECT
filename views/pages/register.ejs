@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aeternorithm Project</title>
     <link rel="stylesheet" href="/css/pages/register.css">
+    <link rel="stylesheet" href="/css/components/navbar.css">
     <link rel="stylesheet" href="/css/components/scrollbar.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,12 +13,7 @@
 </head>
 <body>
 
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="container nav-content">
-            <a href="/" class="nav-logo">Aeternorithm</a>
-        </div>
-    </nav>
+    <%- include('../partials/navbar', { user: typeof user !== 'undefined' ? user : null, active: 'register' }) %>
 
     <!-- Auth -->
     <section class="auth-page">
@@ -103,6 +99,7 @@
         });
     })();
     </script>
+    <script src="/js/navbar.js"></script>
     <script src="/js/security.js"></script>
 </body>
 </html>

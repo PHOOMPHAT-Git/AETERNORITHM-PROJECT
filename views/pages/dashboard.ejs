@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aeternorithm Project</title>
     <link rel="stylesheet" href="/css/pages/dashboard.css">
+    <link rel="stylesheet" href="/css/components/navbar.css">
     <link rel="stylesheet" href="/css/components/scrollbar.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,18 +13,7 @@
 </head>
 <body>
 
-    <nav class="navbar">
-        <div class="container nav-content">
-            <a href="/" class="nav-logo">Aeternorithm</a>
-            <div class="nav-menu">
-                <ul class="nav-links">
-                    <li><a href="/">Home</a></li>
-                    <li><a href="/account"><%= user.username %></a></li>
-                    <li><a href="/dashboard" class="active">Dashboard</a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    <%- include('../partials/navbar', { user: typeof user !== 'undefined' ? user : null, active: 'dashboard' }) %>
 
     <main class="page">
         <div class="container">
@@ -87,7 +77,69 @@
                 <div class="pagination" id="pagination"></div>
             </div>
 
-            <!-- Player Detail Modal -->
+            <div class="card creators-card">
+                <div class="card-header">
+                    <h2 class="card-title">Creators / Connections</h2>
+                    <div class="card-header-actions">
+                        <input type="text" class="search-input" id="creatorSearchInput" placeholder="Search creators...">
+                        <button class="btn btn-primary btn-sm" id="addCreatorBtn">Add Creator</button>
+                    </div>
+                </div>
+                <div class="creator-admin-list" id="creatorAdminList">
+                    <p class="empty-state">Loading...</p>
+                </div>
+            </div>
+
+            <div class="modal-overlay" id="creatorModalOverlay">
+                <div class="modal modal-sm">
+                    <div class="modal-header">
+                        <h3 class="modal-title" id="creatorModalTitle">Add Creator</h3>
+                        <button class="modal-close" id="creatorModalClose">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="creatorForm" class="edit-form">
+                            <div class="form-group">
+                                <label class="form-label" for="creatorName">Name</label>
+                                <input type="text" class="form-input" id="creatorName" required maxlength="80">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="creatorHandle">Handle</label>
+                                <input type="text" class="form-input" id="creatorHandle" placeholder="@username" required maxlength="80">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Platform</label>
+                                <div class="status-toggle" id="creatorPlatform" role="radiogroup" aria-label="Platform">
+                                    <button type="button" class="status-toggle-btn platform-youtube" data-value="youtube" role="radio" aria-checked="false">YouTube</button>
+                                    <button type="button" class="status-toggle-btn platform-tiktok" data-value="tiktok" role="radio" aria-checked="false">TikTok</button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="creatorUrl">Profile URL</label>
+                                <input type="url" class="form-input" id="creatorUrl" placeholder="https://..." required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="creatorAvatar">Avatar URL or Path</label>
+                                <input type="text" class="form-input" id="creatorAvatar" placeholder="/images/foo.png or https://...">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="creatorFollowers">Followers (display text)</label>
+                                <input type="text" class="form-input" id="creatorFollowers" placeholder="12K">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="creatorOrder">Order</label>
+                                <input type="number" class="form-input" id="creatorOrder" value="0" step="1">
+                            </div>
+                            <div class="form-error" id="creatorError"></div>
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-danger btn-sm" id="creatorDeleteBtn" hidden>Delete</button>
+                                <button type="button" class="btn btn-outline btn-sm" id="creatorCancelBtn">Cancel</button>
+                                <button type="submit" class="btn btn-primary btn-sm" id="creatorSaveBtn">Save</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
             <div class="modal-overlay" id="modalOverlay">
                 <div class="modal">
                     <div class="modal-header">
@@ -582,11 +634,201 @@
             }
         });
 
+        // ====================== Creators (Admin) ======================
+        var creatorsCache = [];
+        var creatorEditingId = null;
+        var creatorSearchQuery = '';
+
+        async function loadCreators() {
+            var listEl = document.getElementById('creatorAdminList');
+            try {
+                var res = await fetch('/api/creators');
+                var data = await res.json();
+                if (!res.ok || !data.success) {
+                    listEl.innerHTML = '<p class="empty-state">Failed to load creators.</p>';
+                    return;
+                }
+                creatorsCache = data.creators || [];
+                renderCreatorsList();
+            } catch (err) {
+                listEl.innerHTML = '<p class="empty-state">Failed to load creators.</p>';
+            }
+        }
+
+        function renderCreatorsList() {
+            var listEl = document.getElementById('creatorAdminList');
+            var q = creatorSearchQuery;
+            var filtered = !q ? creatorsCache : creatorsCache.filter(function(c) {
+                return (c.name || '').toLowerCase().indexOf(q) !== -1 ||
+                       (c.handle || '').toLowerCase().indexOf(q) !== -1 ||
+                       (c.platform || '').toLowerCase().indexOf(q) !== -1;
+            });
+
+            if (filtered.length === 0) {
+                listEl.innerHTML = '<p class="empty-state">' + (q ? 'No creators match your search.' : 'No creators yet. Click "Add Creator" to create one.') + '</p>';
+                return;
+            }
+
+            listEl.innerHTML = filtered.map(function(c) {
+                var avatarHtml = c.avatar
+                    ? '<img class="creator-row-avatar" src="' + esc(c.avatar) + '" alt="">'
+                    : '<span class="creator-row-avatar fallback">' + esc((c.name || '?').charAt(0)) + '</span>';
+                var platformBadge = '<span class="platform-badge platform-' + esc(c.platform) + '">' + esc(c.platform) + '</span>';
+                var followers = c.followers ? '<span class="muted">· ' + esc(c.followers) + ' followers</span>' : '';
+                return '<div class="creator-row" data-id="' + esc(c._id) + '">' +
+                    '<div class="creator-row-main">' +
+                        avatarHtml +
+                        '<div class="creator-row-info">' +
+                            '<div class="creator-row-name">' + esc(c.name) + ' ' + platformBadge + '</div>' +
+                            '<div class="creator-row-meta"><span class="muted">' + esc(c.handle) + '</span> ' + followers + '</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="creator-row-actions">' +
+                        '<a class="btn btn-outline btn-sm" href="' + esc(c.url) + '" target="_blank" rel="noopener noreferrer">Open</a>' +
+                        '<button type="button" class="btn btn-outline btn-sm" data-action="edit">Edit</button>' +
+                    '</div>' +
+                '</div>';
+            }).join('');
+        }
+
+        function setCreatorPlatform(value) {
+            var btns = document.querySelectorAll('#creatorPlatform .status-toggle-btn');
+            btns.forEach(function(b) {
+                var active = b.getAttribute('data-value') === value;
+                b.classList.toggle('active', active);
+                b.setAttribute('aria-checked', active ? 'true' : 'false');
+            });
+        }
+        function getCreatorPlatform() {
+            var active = document.querySelector('#creatorPlatform .status-toggle-btn.active');
+            return active ? active.getAttribute('data-value') : '';
+        }
+        document.querySelectorAll('#creatorPlatform .status-toggle-btn').forEach(function(b) {
+            b.addEventListener('click', function() {
+                setCreatorPlatform(b.getAttribute('data-value'));
+            });
+        });
+
+        function openCreatorModal(creator) {
+            creatorEditingId = creator ? creator._id : null;
+            document.getElementById('creatorModalTitle').textContent = creator ? 'Edit Creator' : 'Add Creator';
+            document.getElementById('creatorName').value = creator ? (creator.name || '') : '';
+            document.getElementById('creatorHandle').value = creator ? (creator.handle || '') : '';
+            document.getElementById('creatorUrl').value = creator ? (creator.url || '') : '';
+            document.getElementById('creatorAvatar').value = creator ? (creator.avatar || '') : '';
+            document.getElementById('creatorFollowers').value = creator ? (creator.followers || '') : '';
+            document.getElementById('creatorOrder').value = creator ? (creator.order != null ? creator.order : 0) : 0;
+            setCreatorPlatform(creator ? creator.platform : 'youtube');
+            document.getElementById('creatorError').textContent = '';
+            document.getElementById('creatorDeleteBtn').hidden = !creator;
+            document.getElementById('creatorModalOverlay').classList.add('active');
+        }
+
+        function closeCreatorModal() {
+            document.getElementById('creatorModalOverlay').classList.remove('active');
+            creatorEditingId = null;
+        }
+
+        document.getElementById('addCreatorBtn').addEventListener('click', function() {
+            openCreatorModal(null);
+        });
+
+        document.getElementById('creatorAdminList').addEventListener('click', function(e) {
+            var btn = e.target.closest('button[data-action="edit"]');
+            if (!btn) return;
+            var row = btn.closest('.creator-row');
+            if (!row) return;
+            var id = row.getAttribute('data-id');
+            var creator = creatorsCache.find(function(c) { return String(c._id) === String(id); });
+            if (creator) openCreatorModal(creator);
+        });
+
+        document.getElementById('creatorModalClose').addEventListener('click', closeCreatorModal);
+        document.getElementById('creatorCancelBtn').addEventListener('click', closeCreatorModal);
+        document.getElementById('creatorModalOverlay').addEventListener('click', function(e) {
+            if (e.target === this) closeCreatorModal();
+        });
+
+        document.getElementById('creatorSearchInput').addEventListener('input', function() {
+            creatorSearchQuery = this.value.trim().toLowerCase();
+            renderCreatorsList();
+        });
+
+        document.getElementById('creatorForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            var errorEl = document.getElementById('creatorError');
+            var saveBtn = document.getElementById('creatorSaveBtn');
+            errorEl.textContent = '';
+
+            var platform = getCreatorPlatform();
+            if (!platform) {
+                errorEl.textContent = 'Select a platform.';
+                return;
+            }
+
+            var payload = {
+                name: document.getElementById('creatorName').value.trim(),
+                handle: document.getElementById('creatorHandle').value.trim(),
+                platform: platform,
+                url: document.getElementById('creatorUrl').value.trim(),
+                avatar: document.getElementById('creatorAvatar').value.trim(),
+                followers: document.getElementById('creatorFollowers').value.trim(),
+                order: Number(document.getElementById('creatorOrder').value) || 0
+            };
+
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+            try {
+                var url = '/api/creators' + (creatorEditingId ? '/' + encodeURIComponent(creatorEditingId) : '');
+                var method = creatorEditingId ? 'PUT' : 'POST';
+                var res = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                var data = await res.json();
+                if (!res.ok || !data.success) throw new Error(data.error || 'Request failed');
+                closeCreatorModal();
+                loadCreators();
+            } catch (err) {
+                errorEl.textContent = err.message || 'Failed to save creator.';
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Save';
+            }
+        });
+
+        document.getElementById('creatorDeleteBtn').addEventListener('click', async function() {
+            if (!creatorEditingId) return;
+            if (!confirm('Delete this creator? This cannot be undone.')) return;
+
+            var errorEl = document.getElementById('creatorError');
+            var btn = this;
+            errorEl.textContent = '';
+            btn.disabled = true;
+            btn.textContent = 'Deleting...';
+            try {
+                var res = await fetch('/api/creators/' + encodeURIComponent(creatorEditingId), { method: 'DELETE' });
+                var data = await res.json();
+                if (!res.ok || !data.success) throw new Error(data.error || 'Request failed');
+                closeCreatorModal();
+                loadCreators();
+            } catch (err) {
+                errorEl.textContent = err.message || 'Failed to delete creator.';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Delete';
+            }
+        });
+
+        loadCreators();
+
         // Auto refresh every 30s
         loadPlayers();
         setInterval(loadPlayers, 30000);
     })();
     </script>
+    <script src="/js/navbar.js"></script>
     <script src="/js/security.js"></script>
 </body>
 </html>

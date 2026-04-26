@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Connections | Aeternorithm Project</title>
+    <link rel="stylesheet" href="/css/pages/connections.css">
+    <link rel="stylesheet" href="/css/components/navbar.css">
+    <link rel="stylesheet" href="/css/components/scrollbar.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <%- include('../partials/navbar', { user: typeof user !== 'undefined' ? user : null, active: 'connections' }) %>
+
+    <section class="hero">
+        <div class="container hero-content">
+            <h1 class="hero-name">Our Connections</h1>
+            <p class="hero-desc">Creators and partners we work and collaborate with.</p>
+        </div>
+    </section>
+
+    <% if (creators && creators.length) { %>
+    <section class="section section-tight">
+        <div class="container">
+            <div class="search-wrap">
+                <span class="search-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+                </span>
+                <input type="search" id="creatorSearch" class="search-input" placeholder="Search creators..." autocomplete="off">
+            </div>
+            <div class="filter-bar" role="tablist">
+                <button class="filter-btn active" data-filter="all" type="button">All</button>
+                <button class="filter-btn" data-filter="youtube" type="button">YouTube</button>
+                <button class="filter-btn" data-filter="tiktok" type="button">TikTok</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="section section-tight">
+        <div class="container">
+            <div class="creators-list" id="creatorsList">
+                <% creators.forEach(function(c) { %>
+                    <a href="<%= c.url %>" target="_blank" rel="noopener noreferrer"
+                       class="creator-banner platform-<%= c.platform %>"
+                       data-platform="<%= c.platform %>"
+                       data-name="<%= (c.name || '').toLowerCase() %>"
+                       data-handle="<%= (c.handle || '').toLowerCase() %>"
+                       <% if (c.banner) { %>style="--banner-image: url('<%= c.banner %>');"<% } %>>
+                        <div class="creator-banner-bg"></div>
+                        <div class="creator-banner-content">
+                            <div class="creator-avatar">
+                                <% if (c.avatar) { %>
+                                    <img src="<%= c.avatar %>" alt="<%= c.name %>" />
+                                <% } else { %>
+                                    <span><%= c.name.charAt(0) %></span>
+                                <% } %>
+                            </div>
+                            <div class="creator-info">
+                                <div class="creator-name-row">
+                                    <span class="creator-name"><%= c.name %></span>
+                                    <span class="creator-platform-icon" aria-hidden="true">
+                                        <% if (c.platform === 'youtube') { %>
+                                            <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.6 15.6V8.4l6.2 3.6-6.2 3.6z"/></svg>
+                                        <% } else if (c.platform === 'tiktok') { %>
+                                            <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M19.6 6.7a4.8 4.8 0 0 1-2.7-1 4.7 4.7 0 0 1-1.7-2.4l-.1-.6h-3.4v13.4c0 .9-.3 1.6-1 2.2a3 3 0 0 1-2.2.9c-1.7 0-3.1-1.3-3.1-3.1 0-1.7 1.4-3.1 3.1-3.1.3 0 .7.1 1 .2v-3.4a6.5 6.5 0 0 0-7.5 6.4 6.5 6.5 0 0 0 6.5 6.4 6.5 6.5 0 0 0 6.5-6.4V9.4a8 8 0 0 0 4.6 1.4V7.4c0-.2-.1-.5-.1-.7z"/></svg>
+                                        <% } %>
+                                    </span>
+                                </div>
+                                <div class="creator-meta">
+                                    <span class="creator-handle"><%= c.handle %></span>
+                                    <% if (c.followers) { %>
+                                        <span class="creator-dot">·</span>
+                                        <span class="creator-followers"><%= c.followers %> followers</span>
+                                    <% } %>
+                                </div>
+                            </div>
+                            <div class="creator-cta" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg>
+                            </div>
+                        </div>
+                    </a>
+                <% }); %>
+            </div>
+            <p class="empty-state" id="emptyState" hidden>No creators match your search.</p>
+        </div>
+    </section>
+    <% } else { %>
+    <section class="section">
+        <div class="container">
+            <p class="empty-state">We haven't announced any creator partnerships yet. Stay tuned.</p>
+        </div>
+    </section>
+    <% } %>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 Aeternorithm Project. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="/js/navbar.js"></script>
+    <script>
+        (function() {
+            var buttons = document.querySelectorAll('.filter-btn');
+            var list = document.getElementById('creatorsList');
+            var empty = document.getElementById('emptyState');
+            var searchEl = document.getElementById('creatorSearch');
+            if (!list) return;
+
+            var currentFilter = 'all';
+            var currentQuery = '';
+
+            function applyFilters() {
+                var visible = 0;
+                list.querySelectorAll('.creator-banner').forEach(function(el) {
+                    var platformOk = currentFilter === 'all' || el.getAttribute('data-platform') === currentFilter;
+                    var name = el.getAttribute('data-name') || '';
+                    var handle = el.getAttribute('data-handle') || '';
+                    var queryOk = !currentQuery || name.indexOf(currentQuery) !== -1 || handle.indexOf(currentQuery) !== -1;
+                    var show = platformOk && queryOk;
+                    el.style.display = show ? '' : 'none';
+                    if (show) visible++;
+                });
+                if (empty) empty.hidden = visible !== 0;
+            }
+
+            buttons.forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    buttons.forEach(function(b) { b.classList.remove('active'); });
+                    btn.classList.add('active');
+                    currentFilter = btn.getAttribute('data-filter');
+                    applyFilters();
+                });
+            });
+
+            if (searchEl) {
+                searchEl.addEventListener('input', function() {
+                    currentQuery = this.value.trim().toLowerCase();
+                    applyFilters();
+                });
+            }
+        })();
+    </script>
+    <script src="/js/security.js"></script>
+</body>
+</html>

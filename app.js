@@ -7,6 +7,7 @@ const { connectDB } = require('./src/config/db');
 
 const indexRouter = require('./src/routes/index');
 const aboutRouter = require('./src/routes/about');
+const connectionsRouter = require('./src/routes/connections');
 const termsRouter = require('./src/routes/terms');
 const privacyRouter = require('./src/routes/privacy');
 const registerRouter = require('./src/routes/register');
@@ -20,6 +21,7 @@ const statusRouter = require('./src/routes/status');
 const ticketRouter = require('./src/routes/ticket');
 const apiVerifyTokenRouter = require('./src/routes/api-verify-token');
 const apiGameRouter = require('./src/routes/api-game');
+const apiCreatorsRouter = require('./src/routes/api-creators');
 const dashboardRouter = require('./src/routes/dashboard');
 
 const app = express();
@@ -70,6 +72,7 @@ app.use(sessionMiddleware);
 
 app.use('/', indexRouter);
 app.use('/about', aboutRouter);
+app.use('/connections', connectionsRouter);
 app.use('/terms', termsRouter);
 app.use('/privacy', privacyRouter);
 app.use('/register', registerRouter);
@@ -83,6 +86,7 @@ app.use('/api/status', statusRouter);
 app.use('/ticket', ticketRouter);
 app.use('/api/verify-token', apiVerifyTokenRouter);
 app.use('/api/game', apiGameRouter);
+app.use('/api/creators', apiCreatorsRouter);
 app.use('/dashboard', dashboardRouter);
 
 app.use((req, res) => {

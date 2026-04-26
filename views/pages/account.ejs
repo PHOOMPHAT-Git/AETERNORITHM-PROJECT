@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aeternorithm Project</title>
     <link rel="stylesheet" href="/css/pages/account.css">
+    <link rel="stylesheet" href="/css/components/navbar.css">
     <link rel="stylesheet" href="/css/components/scrollbar.css">
     <link rel="stylesheet" href="/css/alert.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,18 +14,7 @@
 </head>
 <body>
 
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="container nav-content">
-            <a href="/" class="nav-logo">Aeternorithm</a>
-            <div class="nav-menu">
-                <ul class="nav-links">
-                    <li><a href="/">Home</a></li>
-                    <li><a href="/account" class="active"><%= user.username %></a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    <%- include('../partials/navbar', { user: typeof user !== 'undefined' ? user : null, active: 'account' }) %>
 
     <main class="page">
         <div class="container">
@@ -125,6 +115,7 @@
         </div>
     </footer>
 
+    <script src="/js/navbar.js"></script>
     <script src="/js/alert.js"></script>
     <script>
         async function copyToken() {

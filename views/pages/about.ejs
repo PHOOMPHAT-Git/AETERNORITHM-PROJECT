@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aeternorithm Project</title>
     <link rel="stylesheet" href="/css/pages/about.css">
+    <link rel="stylesheet" href="/css/components/navbar.css">
     <link rel="stylesheet" href="/css/components/scrollbar.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,28 +13,7 @@
 </head>
 <body>
 
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="container nav-content">
-            <a href="/" class="nav-logo">Aeternorithm</a>
-            <div class="nav-menu">
-                <ul class="nav-links">
-                    <li><a href="/">Home</a></li>
-                    <li><a href="/about" class="active">About</a></li>
-                </ul>
-            </div>
-            <button class="nav-hamburger" id="hamburger">
-                <span></span><span></span><span></span>
-            </button>
-        </div>
-    </nav>
-
-    <div class="nav-menu-mobile" id="mobileMenu">
-        <ul class="nav-links">
-            <li><a href="/">Home</a></li>
-            <li><a href="/about">About</a></li>
-        </ul>
-    </div>
+    <%- include('../partials/navbar', { user: typeof user !== 'undefined' ? user : null, active: 'about' }) %>
 
     <!-- Hero -->
     <section class="hero">
@@ -126,13 +106,7 @@
         </div>
     </footer>
 
-    <script>
-        document.getElementById('hamburger').addEventListener('click', function() {
-            this.classList.toggle('active');
-            document.getElementById('mobileMenu').classList.toggle('open');
-            document.body.classList.toggle('menu-open');
-        });
-    </script>
+    <script src="/js/navbar.js"></script>
     <script src="/js/security.js"></script>
     <script src="/js/status.js"></script>
 </body>

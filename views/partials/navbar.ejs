@@ -1,0 +1,51 @@
+<%
+const navUser = typeof user !== 'undefined' ? user : null;
+const navActive = typeof active !== 'undefined' ? active : '';
+%>
+<nav class="navbar">
+    <div class="container nav-content">
+        <a href="/" class="nav-logo">Aeternorithm</a>
+        <div class="nav-menu">
+            <ul class="nav-links">
+                <li><a href="/" class="<%= navActive === 'home' ? 'active' : '' %>">Home</a></li>
+                <li><a href="/about" class="<%= navActive === 'about' ? 'active' : '' %>">About</a></li>
+                <li><a href="/connections" class="<%= navActive === 'connections' ? 'active' : '' %>">Connections</a></li>
+            </ul>
+            <div class="nav-divider"></div>
+            <ul class="nav-links nav-auth">
+                <% if (navUser) { %>
+                    <li><a href="/account" class="<%= navActive === 'account' ? 'active' : '' %>"><%= navUser.username %></a></li>
+                <% } else { %>
+                    <li><a href="/login" class="<%= navActive === 'login' ? 'active' : '' %>">Login</a></li>
+                <% } %>
+            </ul>
+        </div>
+        <button class="nav-hamburger" id="hamburger" aria-label="Toggle menu" type="button">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+</nav>
+
+<div class="nav-menu-mobile" id="mobileMenu">
+    <ul class="nav-links">
+        <li><a href="/" class="<%= navActive === 'home' ? 'active' : '' %>">Home</a></li>
+        <li><a href="/about" class="<%= navActive === 'about' ? 'active' : '' %>">About</a></li>
+        <li><a href="/connections" class="<%= navActive === 'connections' ? 'active' : '' %>">Connections</a></li>
+        <li><a href="/terms" class="<%= navActive === 'terms' ? 'active' : '' %>">Terms</a></li>
+        <li><a href="/privacy" class="<%= navActive === 'privacy' ? 'active' : '' %>">Privacy</a></li>
+    </ul>
+    <div class="nav-divider"></div>
+    <ul class="nav-links nav-auth">
+        <% if (navUser) { %>
+            <li><a href="/account" class="<%= navActive === 'account' ? 'active' : '' %>"><%= navUser.username %></a></li>
+            <% if (navUser.isAdmin || navUser.is_admin) { %>
+                <li><a href="/dashboard" class="<%= navActive === 'dashboard' ? 'active' : '' %>">Dashboard</a></li>
+            <% } %>
+            <li><a href="/settings" class="<%= navActive === 'settings' ? 'active' : '' %>">Settings</a></li>
+            <li><a href="/logout">Logout</a></li>
+        <% } else { %>
+            <li><a href="/login" class="<%= navActive === 'login' ? 'active' : '' %>">Login</a></li>
+            <li><a href="/register" class="<%= navActive === 'register' ? 'active' : '' %>">Register</a></li>
+        <% } %>
+    </ul>
+</div>
