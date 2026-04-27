@@ -16,7 +16,6 @@
 
         const selectors = [
             '.section',
-            '.creator-banner',
             '.hero-content > *',
             '.about-content > *',
             '[data-reveal]'
@@ -277,146 +276,6 @@
         }
     }
 
-    function initCommandPalette() {
-        const overlay = document.createElement('div');
-        overlay.className = 'ux-cmd-overlay';
-        overlay.setAttribute('role', 'dialog');
-        overlay.setAttribute('aria-label', 'Command palette');
-        overlay.innerHTML = `
-            <div class="ux-cmd">
-                <div class="ux-cmd__search">
-                    <span class="ux-cmd__icon">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-                    </span>
-                    <input type="text" class="ux-cmd__input" placeholder="Search pages or actions...">
-                    <span class="ux-cmd__hint">ESC</span>
-                </div>
-                <ul class="ux-cmd__list" role="listbox"></ul>
-                <div class="ux-cmd__footer">
-                    <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
-                    <span><kbd>↵</kbd> select</span>
-                    <span><kbd>Esc</kbd> close</span>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(overlay);
-
-        const input = overlay.querySelector('.ux-cmd__input');
-        const list = overlay.querySelector('.ux-cmd__list');
-
-        const navIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
-
-        function collectItems() {
-            const seen = new Set();
-            const items = [];
-            const navLinks = document.querySelectorAll('.navbar a, .nav-menu-mobile a');
-            navLinks.forEach((a) => {
-                const href = a.getAttribute('href');
-                const label = (a.textContent || '').trim();
-                if (!href || !label) return;
-                const key = href + '|' + label.toLowerCase();
-                if (seen.has(key)) return;
-                seen.add(key);
-                items.push({ label, href, kind: 'page' });
-            });
-            return items;
-        }
-
-        let items = [];
-        let filtered = [];
-        let activeIndex = 0;
-
-        function render(query) {
-            const q = (query || '').trim().toLowerCase();
-            filtered = !q ? items : items.filter((it) => it.label.toLowerCase().includes(q) || it.href.toLowerCase().includes(q));
-            list.innerHTML = '';
-            if (!filtered.length) {
-                const empty = document.createElement('div');
-                empty.className = 'ux-cmd__empty';
-                empty.textContent = 'No results';
-                list.appendChild(empty);
-                return;
-            }
-            filtered.forEach((it, i) => {
-                const li = document.createElement('li');
-                li.className = 'ux-cmd__item' + (i === activeIndex ? ' ux-cmd__item--active' : '');
-                li.setAttribute('role', 'option');
-                li.innerHTML = `<span class="ux-cmd__item-icon">${navIcon}</span><span>${escapeHtml(it.label)}</span>`;
-                li.addEventListener('click', () => go(it));
-                li.addEventListener('mouseenter', () => {
-                    activeIndex = i;
-                    updateActive();
-                });
-                list.appendChild(li);
-            });
-        }
-
-        function updateActive() {
-            list.querySelectorAll('.ux-cmd__item').forEach((el, i) => {
-                el.classList.toggle('ux-cmd__item--active', i === activeIndex);
-                if (i === activeIndex) el.scrollIntoView({ block: 'nearest' });
-            });
-        }
-
-        function go(item) {
-            close();
-            if (window.uxProgress) window.uxProgress.start();
-            window.location.href = item.href;
-        }
-
-        function open() {
-            items = collectItems();
-            activeIndex = 0;
-            input.value = '';
-            render('');
-            overlay.classList.add('ux-cmd-overlay--open');
-            setTimeout(() => input.focus(), 30);
-            document.body.style.overflow = 'hidden';
-        }
-
-        function close() {
-            overlay.classList.remove('ux-cmd-overlay--open');
-            document.body.style.overflow = '';
-        }
-
-        input.addEventListener('input', () => {
-            activeIndex = 0;
-            render(input.value);
-        });
-
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) close();
-        });
-
-        document.addEventListener('keydown', (e) => {
-            const isOpen = overlay.classList.contains('ux-cmd-overlay--open');
-            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
-                e.preventDefault();
-                if (isOpen) close();
-                else open();
-                return;
-            }
-            if (!isOpen) return;
-            if (e.key === 'Escape') { e.preventDefault(); close(); }
-            else if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                if (filtered.length) { activeIndex = (activeIndex + 1) % filtered.length; updateActive(); }
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                if (filtered.length) { activeIndex = (activeIndex - 1 + filtered.length) % filtered.length; updateActive(); }
-            } else if (e.key === 'Enter') {
-                e.preventDefault();
-                if (filtered[activeIndex]) go(filtered[activeIndex]);
-            }
-        });
-
-        window.uxCommandPalette = { open, close };
-    }
-
-    function escapeHtml(s) {
-        return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-    }
-
     function init() {
         ensureStylesheet();
         initTopProgress();
@@ -424,7 +283,6 @@
         initCursorGlow();
         initButtons();
         initForms();
-        initCommandPalette();
     }
 
     if (document.readyState === 'loading') {
