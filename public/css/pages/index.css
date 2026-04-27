@@ -246,27 +246,6 @@ body.menu-open {
     border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.footer-links {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 12px 0;
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    flex-wrap: wrap;
-}
-
-.footer-links a {
-    font-size: 0.85rem;
-    color: #a1a1aa;
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
-
-.footer-links a:hover {
-    color: #ffffff;
-}
-
 .footer p {
     font-size: 0.85rem;
     color: #52525a;
