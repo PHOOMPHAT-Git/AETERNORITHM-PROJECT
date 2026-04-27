@@ -11,6 +11,7 @@
 }
 
 .toast {
+    position: relative;
     pointer-events: auto;
     display: inline-flex;
     align-items: stretch;
@@ -19,7 +20,7 @@
     width: fit-content;
     min-width: 280px;
     max-width: 380px;
-    padding: 14px 16px;
+    padding: 14px 16px 16px;
     margin-bottom: 12px;
     background: #1a1a1a;
     color: #ffffff;
@@ -29,13 +30,24 @@
     opacity: 0;
     transform: translateX(100px);
     animation: toast-slide-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    cursor: pointer;
+    cursor: grab;
+    overflow: hidden;
+    touch-action: pan-y;
     transition: transform 0.15s ease, margin-bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
     will-change: transform, opacity;
 }
 
+.toast:active {
+    cursor: grabbing;
+}
+
 .toast:hover {
     transform: translateX(-4px);
+}
+
+.toast--swiping {
+    animation: none !important;
+    transition: none !important;
 }
 
 .toast__bar {

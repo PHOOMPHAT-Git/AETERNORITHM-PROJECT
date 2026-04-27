@@ -29,23 +29,94 @@
         text.className = 'toast__text';
         text.textContent = message;
 
+        const progress = document.createElement('span');
+        progress.className = 'toast__progress';
+        progress.style.transition = `transform ${duration}ms linear`;
+        progress.style.transform = 'scaleX(1)';
+
         content.appendChild(icon);
         content.appendChild(text);
         toast.appendChild(bar);
         toast.appendChild(content);
+        toast.appendChild(progress);
         area.appendChild(toast);
 
+        requestAnimationFrame(() => { progress.style.transform = 'scaleX(0)'; });
+
         let hideTimer = setTimeout(closeToast, duration);
+        let remaining = duration;
+        let startedAt = Date.now();
 
         toast.addEventListener('mouseenter', () => {
             clearTimeout(hideTimer);
+            remaining -= Date.now() - startedAt;
+            const computed = getComputedStyle(progress).transform;
+            progress.style.transition = 'none';
+            progress.style.transform = computed;
         });
 
         toast.addEventListener('mouseleave', () => {
-            hideTimer = setTimeout(closeToast, duration);
+            startedAt = Date.now();
+            progress.style.transition = `transform ${remaining}ms linear`;
+            requestAnimationFrame(() => { progress.style.transform = 'scaleX(0)'; });
+            hideTimer = setTimeout(closeToast, remaining);
         });
 
-        toast.addEventListener('click', closeToast);
+        let dragStartX = null;
+        let dragDelta = 0;
+
+        toast.addEventListener('pointerdown', (e) => {
+            if (e.button !== undefined && e.button !== 0) return;
+            dragStartX = e.clientX;
+            dragDelta = 0;
+            toast.classList.add('toast--swiping');
+            toast.setPointerCapture(e.pointerId);
+            clearTimeout(hideTimer);
+            const computed = getComputedStyle(progress).transform;
+            progress.style.transition = 'none';
+            progress.style.transform = computed;
+        });
+
+        toast.addEventListener('pointermove', (e) => {
+            if (dragStartX === null) return;
+            dragDelta = e.clientX - dragStartX;
+            if (dragDelta < 0) dragDelta = 0;
+            toast.style.transform = `translateX(${dragDelta}px)`;
+            toast.style.opacity = String(Math.max(0, 1 - dragDelta / 220));
+        });
+
+        function endDrag(e) {
+            if (dragStartX === null) return;
+            try { toast.releasePointerCapture(e.pointerId); } catch (_) {}
+            const threshold = 90;
+            if (dragDelta > threshold) {
+                toast.style.transition = 'transform 0.18s ease, opacity 0.18s ease, margin-bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+                toast.style.transform = 'translateX(120%)';
+                toast.style.opacity = '0';
+                toast.style.marginBottom = `-${toast.offsetHeight + 12}px`;
+                setTimeout(() => toast.remove(), 200);
+            } else {
+                toast.style.transition = 'transform 0.18s ease, opacity 0.18s ease';
+                toast.style.transform = '';
+                toast.style.opacity = '';
+                toast.classList.remove('toast--swiping');
+                remaining = Math.max(800, remaining - (Date.now() - startedAt));
+                progress.style.transition = `transform ${remaining}ms linear`;
+                requestAnimationFrame(() => { progress.style.transform = 'scaleX(0)'; });
+                hideTimer = setTimeout(closeToast, remaining);
+                startedAt = Date.now();
+            }
+            dragStartX = null;
+            dragDelta = 0;
+        }
+
+        toast.addEventListener('pointerup', endDrag);
+        toast.addEventListener('pointercancel', endDrag);
+
+        toast.addEventListener('click', (e) => {
+            if (dragDelta > 5) return;
+            closeToast();
+        });
 
         function closeToast() {
             clearTimeout(hideTimer);
