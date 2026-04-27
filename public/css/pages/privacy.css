@@ -9,7 +9,11 @@ body {
 
 a { text-decoration: none; color: inherit; }
 
-.container { max-width: 750px; margin: 0 auto; padding: 0 24px; }
+.container {
+    max-width: 750px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
 
 /* Navbar */
 .navbar {
