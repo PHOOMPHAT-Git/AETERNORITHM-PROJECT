@@ -118,18 +118,6 @@
                                 <label class="form-label" for="creatorUrl">Profile URL</label>
                                 <input type="url" class="form-input" id="creatorUrl" placeholder="https://www.youtube.com/@channel" required>
                             </div>
-                            <div class="form-group">
-                                <label class="form-label" for="creatorAvatar">Avatar URL or Path</label>
-                                <input type="text" class="form-input" id="creatorAvatar" placeholder="/images/foo.png or https://...">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label" for="creatorBanner">Banner URL or Path</label>
-                                <input type="text" class="form-input" id="creatorBanner" placeholder="https://... (optional)">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label" for="creatorOrder">Order</label>
-                                <input type="number" class="form-input" id="creatorOrder" value="0" step="1">
-                            </div>
                             <div class="form-error" id="creatorError"></div>
                             <div class="form-actions">
                                 <button type="button" class="btn btn-danger btn-sm" id="creatorDeleteBtn" hidden>Delete</button>
@@ -643,6 +631,9 @@
         var creatorsCache = [];
         var creatorEditingId = null;
         var creatorEditingSubscribers = 0;
+        var creatorEditingAvatar = '';
+        var creatorEditingBanner = '';
+        var creatorEditingOrder = 0;
         var creatorSearchQuery = '';
 
         async function loadCreators() {
@@ -676,13 +667,9 @@
             }
 
             listEl.innerHTML = filtered.map(function(c) {
-                var avatarHtml = c.avatar
-                    ? '<img class="creator-row-avatar" src="' + esc(c.avatar) + '" alt="">'
-                    : '<span class="creator-row-avatar fallback">' + esc((c.name || '?').charAt(0)) + '</span>';
                 var platformBadge = '<span class="platform-badge platform-' + esc(c.platform) + '">' + esc(c.platform) + '</span>';
                 return '<div class="creator-row" data-id="' + esc(c._id) + '">' +
                     '<div class="creator-row-main">' +
-                        avatarHtml +
                         '<div class="creator-row-info">' +
                             '<div class="creator-row-name">' + esc(c.name) + ' ' + platformBadge + '</div>' +
                             '<div class="creator-row-meta"><span class="muted">' + esc(c.handle) + '</span></div>' +
@@ -717,13 +704,13 @@
         function openCreatorModal(creator) {
             creatorEditingId = creator ? creator._id : null;
             creatorEditingSubscribers = creator && Number.isFinite(creator.subscribers) ? creator.subscribers : 0;
+            creatorEditingAvatar = creator ? (creator.avatar || '') : '';
+            creatorEditingBanner = creator ? (creator.banner || '') : '';
+            creatorEditingOrder = creator && creator.order != null ? creator.order : 0;
             document.getElementById('creatorModalTitle').textContent = creator ? 'Edit Creator' : 'Add Creator';
             document.getElementById('creatorName').value = creator ? (creator.name || '') : '';
             document.getElementById('creatorHandle').value = creator ? (creator.handle || '') : '';
             document.getElementById('creatorUrl').value = creator ? (creator.url || '') : '';
-            document.getElementById('creatorAvatar').value = creator ? (creator.avatar || '') : '';
-            document.getElementById('creatorBanner').value = creator ? (creator.banner || '') : '';
-            document.getElementById('creatorOrder').value = creator ? (creator.order != null ? creator.order : 0) : 0;
             setCreatorPlatform(creator ? creator.platform : 'youtube');
             document.getElementById('creatorError').textContent = '';
             document.getElementById('creatorDeleteBtn').hidden = !creator;
@@ -777,10 +764,10 @@
                 handle: document.getElementById('creatorHandle').value.trim(),
                 platform: platform,
                 url: document.getElementById('creatorUrl').value.trim(),
-                avatar: document.getElementById('creatorAvatar').value.trim(),
-                banner: document.getElementById('creatorBanner').value.trim(),
+                avatar: creatorEditingAvatar,
+                banner: creatorEditingBanner,
                 subscribers: Number(creatorEditingSubscribers) || 0,
-                order: Number(document.getElementById('creatorOrder').value) || 0
+                order: Number(creatorEditingOrder) || 0
             };
 
             saveBtn.disabled = true;

@@ -48,17 +48,8 @@
                        class="creator-banner platform-<%= c.platform %>"
                        data-platform="<%= c.platform %>"
                        data-name="<%= (c.name || '').toLowerCase() %>"
-                       data-handle="<%= (c.handle || '').toLowerCase() %>"
-                       <% if (c.banner) { %>style="--banner-image: url('<%= c.banner %>');"<% } %>>
-                        <div class="creator-banner-bg"></div>
+                       data-handle="<%= (c.handle || '').toLowerCase() %>">
                         <div class="creator-banner-content">
-                            <div class="creator-avatar">
-                                <% if (c.avatar) { %>
-                                    <img src="<%= c.avatar %>" alt="<%= c.name %>" />
-                                <% } else { %>
-                                    <span><%= c.name.charAt(0) %></span>
-                                <% } %>
-                            </div>
                             <div class="creator-info">
                                 <div class="creator-name-row">
                                     <span class="creator-name"><%= c.name %></span>

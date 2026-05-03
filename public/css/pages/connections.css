@@ -242,8 +242,8 @@ body.menu-open { overflow: hidden; }
 
 /* ==================== Creators ==================== */
 .creators-list {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 16px;
 }
 
@@ -265,33 +265,7 @@ body.menu-open { overflow: hidden; }
 .creator-banner:hover {
     transform: translateY(-2px);
     border-color: rgba(255, 255, 255, 0.14);
-    box-shadow: 0 8px 32px -12px var(--accent, rgba(255, 255, 255, 0.2));
-}
-
-.creator-banner-bg {
-    position: absolute;
-    inset: 0;
-    background:
-        linear-gradient(135deg, var(--accent, #6366f1) 0%, transparent 70%),
-        var(--banner-image, linear-gradient(135deg, #1f1f24 0%, #0f0f12 100%));
-    background-size: cover;
-    background-position: center;
-    opacity: 0.35;
-    transition: opacity 0.25s ease, transform 0.4s ease;
-    z-index: 0;
-}
-
-.creator-banner:hover .creator-banner-bg {
-    opacity: 0.5;
-    transform: scale(1.04);
-}
-
-.creator-banner::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(10, 10, 12, 0.2) 0%, rgba(10, 10, 12, 0.85) 100%);
-    z-index: 1;
+    box-shadow: 0 8px 32px -12px rgba(0, 0, 0, 0.5);
 }
 
 .creator-banner-content {
@@ -301,28 +275,6 @@ body.menu-open { overflow: hidden; }
     align-items: center;
     gap: 16px;
     padding: 18px 20px;
-}
-
-.creator-avatar {
-    flex-shrink: 0;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    overflow: hidden;
-    background: linear-gradient(135deg, var(--accent, #6366f1) 0%, #1f1f24 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-weight: 700;
-    font-size: 1.4rem;
-    border: 2px solid rgba(255, 255, 255, 0.1);
-}
-
-.creator-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
 }
 
 .creator-info {
@@ -358,6 +310,14 @@ body.menu-open { overflow: hidden; }
     margin-top: 2px;
     font-size: 0.85rem;
     color: #8b8b94;
+    min-width: 0;
+}
+
+.creator-handle {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .creator-dot {
@@ -455,14 +415,13 @@ body.menu-open { overflow: hidden; }
 
     .hero-name { font-size: 2rem; }
 
+    .creators-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .creator-banner-content {
         padding: 14px 16px;
         gap: 12px;
-    }
-
-    .creator-avatar {
-        width: 48px;
-        height: 48px;
     }
 
     .creator-name {
@@ -475,6 +434,10 @@ body.menu-open { overflow: hidden; }
 }
 
 @media (max-width: 480px) {
+    .creators-list {
+        grid-template-columns: 1fr;
+    }
+
     .creator-cta {
         display: none;
     }
