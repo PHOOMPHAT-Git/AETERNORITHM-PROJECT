@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="<%= typeof theme !== 'undefined' ? theme : 'default' %>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <%- include('../partials/theme-css') %>
 </head>
 <body>
 
@@ -36,8 +37,37 @@
                 </div>
             </div>
 
+            <div class="card">
+                <div class="setting-info" style="margin-bottom:14px;">
+                    <span class="setting-label">Theme</span>
+                    <span class="setting-desc">Choose how the site looks. Classic mimics late-90s desktop UI.</span>
+                </div>
+                <div class="theme-options" id="themeOptions">
+                    <%
+                    const currentTheme = (user.settings && user.settings.theme) ? user.settings.theme : 'default';
+                    %>
+                    <label class="theme-option <%= currentTheme === 'default' ? 'selected' : '' %>" data-theme-value="default">
+                        <span class="theme-radio"></span>
+                        <span class="theme-meta">
+                            <span class="theme-name">Default</span>
+                            <span class="theme-sub">Modern, smooth, dark</span>
+                        </span>
+                        <input type="radio" name="theme" value="default" <%= currentTheme === 'default' ? 'checked' : '' %> hidden>
+                    </label>
+                    <label class="theme-option <%= currentTheme === 'classic' ? 'selected' : '' %>" data-theme-value="classic">
+                        <span class="theme-radio"></span>
+                        <span class="theme-meta">
+                            <span class="theme-name">Classic</span>
+                            <span class="theme-sub">Old-school Windows, sharp edges, no animations</span>
+                        </span>
+                        <input type="radio" name="theme" value="classic" <%= currentTheme === 'classic' ? 'checked' : '' %> hidden>
+                    </label>
+                </div>
+            </div>
+
             <div class="actions-row">
                 <button class="btn btn-outline" id="goBackBtn">Back to Account</button>
+                <button class="btn btn-primary" id="saveBtn">Save</button>
                 <button class="btn btn-danger" id="resetBtn">Reset All</button>
             </div>
         </div>
@@ -46,7 +76,24 @@
     <script>
     (function() {
         var hideEmailToggle = document.getElementById('hideEmailToggle');
-        var original = { hide_email: hideEmailToggle.checked };
+        var themeOptions = document.getElementById('themeOptions');
+        var selectedTheme = (function() {
+            var sel = themeOptions.querySelector('.theme-option.selected');
+            return sel ? sel.getAttribute('data-theme-value') : 'default';
+        })();
+        var original = { hide_email: hideEmailToggle.checked, theme: selectedTheme };
+
+        themeOptions.addEventListener('click', function(e) {
+            var opt = e.target.closest('.theme-option');
+            if (!opt) return;
+            var val = opt.getAttribute('data-theme-value');
+            selectedTheme = val;
+            var all = themeOptions.querySelectorAll('.theme-option');
+            for (var i = 0; i < all.length; i++) all[i].classList.remove('selected');
+            opt.classList.add('selected');
+            var radio = opt.querySelector('input[type="radio"]');
+            if (radio) radio.checked = true;
+        });
 
         function showMsg(id, msg) {
             var el = document.getElementById(id);
@@ -55,15 +102,27 @@
         }
 
         async function save() {
-            var s = { hide_email: hideEmailToggle.checked };
-            if (s.hide_email === original.hide_email) return true;
+            var s = { hide_email: hideEmailToggle.checked, theme: selectedTheme };
+            if (s.hide_email === original.hide_email && s.theme === original.theme) return true;
             try {
                 var res = await fetch('/settings', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(s) });
                 var data = await res.json();
-                if (res.ok && data.success) { original = s; return true; }
+                if (res.ok && data.success) {
+                    var themeChanged = original.theme !== s.theme;
+                    original = s;
+                    if (themeChanged) {
+                        document.documentElement.setAttribute('data-theme', s.theme);
+                        window.location.reload();
+                    }
+                    return true;
+                }
                 showMsg('errorMessage', data.message || 'Failed'); return false;
             } catch(e) { showMsg('errorMessage', 'Error saving'); return false; }
         }
+
+        document.getElementById('saveBtn').addEventListener('click', async function() {
+            if (await save()) showMsg('successMessage', 'Saved');
+        });
 
         document.getElementById('goBackBtn').addEventListener('click', async function() {
             if (await save()) window.location.href = '/account';
@@ -77,8 +136,19 @@
                 var data = await res.json();
                 if (res.ok && data.success) {
                     hideEmailToggle.checked = true;
-                    original = { hide_email: true };
+                    var themeChanged = original.theme !== 'default';
+                    original = { hide_email: true, theme: 'default' };
                     showMsg('successMessage', 'Settings reset');
+                    if (themeChanged) {
+                        document.documentElement.setAttribute('data-theme', 'default');
+                        window.location.reload();
+                    } else {
+                        var all = themeOptions.querySelectorAll('.theme-option');
+                        for (var i = 0; i < all.length; i++) all[i].classList.remove('selected');
+                        var def = themeOptions.querySelector('[data-theme-value="default"]');
+                        if (def) def.classList.add('selected');
+                        selectedTheme = 'default';
+                    }
                 } else { showMsg('errorMessage', data.message || 'Failed'); }
             } catch(e) { showMsg('errorMessage', 'Error'); }
             finally { this.disabled = false; this.textContent = 'Reset All'; }

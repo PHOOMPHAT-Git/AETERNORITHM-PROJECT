@@ -88,6 +88,56 @@ a { text-decoration: none; color: inherit; }
 .toggle input:checked + .toggle-slider { background: #e4e4e7; }
 .toggle input:checked + .toggle-slider::before { transform: translateX(20px); background: #0a0a0c; }
 
+/* Theme Picker */
+.theme-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.theme-option {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    background: rgba(255,255,255,0.02);
+}
+.theme-option:hover { border-color: rgba(255,255,255,0.16); }
+.theme-option.selected {
+    border-color: #e4e4e7;
+    background: rgba(255,255,255,0.05);
+}
+.theme-radio {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255,255,255,0.2);
+    flex-shrink: 0;
+    position: relative;
+    transition: border-color 0.2s;
+}
+.theme-option.selected .theme-radio { border-color: #e4e4e7; }
+.theme-option.selected .theme-radio::after {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    background: #e4e4e7;
+    border-radius: 50%;
+}
+.theme-meta { display: flex; flex-direction: column; gap: 2px; }
+.theme-name { font-size: 0.9rem; font-weight: 600; color: #e4e4e7; }
+.theme-sub { font-size: 0.78rem; color: #71717a; }
+
+.btn-primary {
+    background: #e4e4e7;
+    color: #0a0a0c;
+    border: none;
+}
+.btn-primary:hover { background: #d4d4d8; }
+
 /* Messages */
 .auth-error, .auth-success {
     padding: 12px 16px;

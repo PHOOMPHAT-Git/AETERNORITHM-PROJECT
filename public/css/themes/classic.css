@@ -1,0 +1,482 @@
+/* ============================================================
+   Classic Theme — Windows 9x style
+   Activated via <html data-theme="classic">.
+   Designed to override the default modern look with sharp,
+   beveled, non-smooth UI reminiscent of late-90s desktops.
+   ============================================================ */
+
+html[data-theme="classic"] {
+    --c-desktop: #008080;
+    --c-surface: #c0c0c0;
+    --c-surface-alt: #d4d0c8;
+    --c-text: #000000;
+    --c-text-muted: #404040;
+    --c-text-disabled: #808080;
+    --c-bevel-hi: #ffffff;
+    --c-bevel-hi2: #dfdfdf;
+    --c-bevel-lo: #808080;
+    --c-bevel-lo2: #000000;
+    --c-titlebar: #000080;
+    --c-titlebar-text: #ffffff;
+    --c-link: #0000ee;
+    --c-link-visited: #551a8b;
+    --c-danger: #800000;
+    --c-success: #006400;
+    --c-input-bg: #ffffff;
+    --c-selection: #000080;
+}
+
+/* --- Globals --- */
+html[data-theme="classic"],
+html[data-theme="classic"] body {
+    background: var(--c-desktop) !important;
+    color: var(--c-text) !important;
+    font-family: "MS Sans Serif", "Microsoft Sans Serif", Tahoma, Geneva, sans-serif !important;
+    font-size: 13px !important;
+    line-height: 1.4 !important;
+    -webkit-font-smoothing: none !important;
+    -moz-osx-font-smoothing: unset !important;
+    font-smooth: never !important;
+    text-rendering: optimizeSpeed !important;
+    scroll-behavior: auto !important;
+}
+
+html[data-theme="classic"] *,
+html[data-theme="classic"] *::before,
+html[data-theme="classic"] *::after {
+    border-radius: 0 !important;
+    transition: none !important;
+    animation: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    letter-spacing: 0 !important;
+}
+
+html[data-theme="classic"] ::selection {
+    background: var(--c-selection) !important;
+    color: #ffffff !important;
+}
+
+html[data-theme="classic"] a {
+    color: var(--c-link) !important;
+    text-decoration: underline !important;
+}
+html[data-theme="classic"] a:hover { color: var(--c-link) !important; }
+html[data-theme="classic"] a:visited { color: var(--c-link-visited) !important; }
+
+/* --- Headings --- */
+html[data-theme="classic"] h1,
+html[data-theme="classic"] h2,
+html[data-theme="classic"] h3,
+html[data-theme="classic"] h4,
+html[data-theme="classic"] .page-title,
+html[data-theme="classic"] .section-title,
+html[data-theme="classic"] .card-title,
+html[data-theme="classic"] .auth-title,
+html[data-theme="classic"] .hero-name {
+    color: var(--c-text) !important;
+    font-weight: bold !important;
+    letter-spacing: 0 !important;
+    font-family: "MS Sans Serif", Tahoma, sans-serif !important;
+}
+
+html[data-theme="classic"] .page-subtitle,
+html[data-theme="classic"] .auth-subtitle,
+html[data-theme="classic"] .hero-greeting,
+html[data-theme="classic"] .hero-role,
+html[data-theme="classic"] .hero-desc,
+html[data-theme="classic"] .setting-desc,
+html[data-theme="classic"] .info-label,
+html[data-theme="classic"] .card-desc {
+    color: var(--c-text) !important;
+}
+
+/* --- Container / Page --- */
+html[data-theme="classic"] .page,
+html[data-theme="classic"] section.section,
+html[data-theme="classic"] .auth-page,
+html[data-theme="classic"] .hero {
+    background: transparent !important;
+    animation: none !important;
+}
+html[data-theme="classic"] .hero { padding-top: 80px !important; }
+
+/* --- Navbar — looks like a Win95 application title bar + menu --- */
+html[data-theme="classic"] .navbar {
+    background: var(--c-surface) !important;
+    border: none !important;
+    border-bottom: 1px solid var(--c-bevel-lo) !important;
+    box-shadow:
+        inset 1px 1px 0 var(--c-bevel-hi),
+        inset -1px -1px 0 var(--c-bevel-lo2),
+        inset 2px 2px 0 var(--c-bevel-hi2),
+        inset -2px -2px 0 var(--c-bevel-lo) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+html[data-theme="classic"] .navbar .nav-content { height: 44px !important; }
+
+html[data-theme="classic"] .navbar .nav-logo {
+    color: var(--c-text) !important;
+    font-weight: bold !important;
+    font-size: 13px !important;
+    background: var(--c-titlebar) !important;
+    color: var(--c-titlebar-text) !important;
+    padding: 3px 10px !important;
+}
+
+html[data-theme="classic"] .navbar .nav-links a,
+html[data-theme="classic"] .nav-menu-mobile .nav-links a {
+    color: var(--c-text) !important;
+    text-decoration: none !important;
+    font-weight: normal !important;
+    font-size: 13px !important;
+    padding: 4px 8px !important;
+    border: 1px solid transparent !important;
+}
+html[data-theme="classic"] .navbar .nav-links a:hover,
+html[data-theme="classic"] .nav-menu-mobile .nav-links a:hover {
+    background: var(--c-titlebar) !important;
+    color: var(--c-titlebar-text) !important;
+}
+html[data-theme="classic"] .navbar .nav-links a.active,
+html[data-theme="classic"] .nav-menu-mobile .nav-links a.active {
+    background: var(--c-bevel-hi2) !important;
+    color: var(--c-text) !important;
+    box-shadow:
+        inset 1px 1px 0 var(--c-bevel-lo),
+        inset -1px -1px 0 var(--c-bevel-hi) !important;
+}
+
+html[data-theme="classic"] .navbar .nav-divider,
+html[data-theme="classic"] .nav-menu-mobile .nav-divider {
+    background: var(--c-bevel-lo) !important;
+    box-shadow: 1px 0 0 var(--c-bevel-hi) !important;
+}
+
+html[data-theme="classic"] .nav-hamburger span {
+    background: var(--c-text) !important;
+    border-radius: 0 !important;
+}
+
+html[data-theme="classic"] .nav-menu-mobile {
+    background: var(--c-surface) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+/* --- Cards / panels — beveled inset window panel --- */
+html[data-theme="classic"] .card,
+html[data-theme="classic"] .auth-card {
+    background: var(--c-surface) !important;
+    border: none !important;
+    box-shadow:
+        inset 1px 1px 0 var(--c-bevel-hi),
+        inset -1px -1px 0 var(--c-bevel-lo2),
+        inset 2px 2px 0 var(--c-bevel-hi2),
+        inset -2px -2px 0 var(--c-bevel-lo) !important;
+    padding: 14px !important;
+    color: var(--c-text) !important;
+}
+
+html[data-theme="classic"] .card-title {
+    background: var(--c-titlebar) !important;
+    color: var(--c-titlebar-text) !important;
+    padding: 3px 8px !important;
+    margin: -14px -14px 12px -14px !important;
+    font-size: 12px !important;
+    font-weight: bold !important;
+}
+
+/* --- Setting rows --- */
+html[data-theme="classic"] .setting-row,
+html[data-theme="classic"] .info-row {
+    border-bottom: 1px solid var(--c-bevel-lo) !important;
+    box-shadow: 0 1px 0 var(--c-bevel-hi) !important;
+    padding: 8px 4px !important;
+}
+html[data-theme="classic"] .setting-row:last-child,
+html[data-theme="classic"] .info-row:last-child {
+    border-bottom: none !important;
+    box-shadow: none !important;
+}
+html[data-theme="classic"] .setting-label,
+html[data-theme="classic"] .info-value { color: var(--c-text) !important; }
+
+/* --- Buttons — raised 3D look, pressed on click --- */
+html[data-theme="classic"] .btn,
+html[data-theme="classic"] button:not(.nav-hamburger):not(.toggle-slider),
+html[data-theme="classic"] .action-link {
+    background: var(--c-surface) !important;
+    color: var(--c-text) !important;
+    border: 1px solid var(--c-bevel-lo2) !important;
+    box-shadow:
+        inset 1px 1px 0 var(--c-bevel-hi),
+        inset -1px -1px 0 var(--c-bevel-lo) !important;
+    padding: 4px 14px !important;
+    font-family: "MS Sans Serif", Tahoma, sans-serif !important;
+    font-size: 12px !important;
+    font-weight: normal !important;
+    border-radius: 0 !important;
+    cursor: default !important;
+    min-width: 75px !important;
+}
+html[data-theme="classic"] .btn:hover,
+html[data-theme="classic"] button:not(.nav-hamburger):not(.toggle-slider):hover,
+html[data-theme="classic"] .action-link:hover {
+    background: var(--c-surface) !important;
+    color: var(--c-text) !important;
+}
+html[data-theme="classic"] .btn:active,
+html[data-theme="classic"] button:not(.nav-hamburger):not(.toggle-slider):active,
+html[data-theme="classic"] .action-link:active {
+    box-shadow:
+        inset 1px 1px 0 var(--c-bevel-lo),
+        inset -1px -1px 0 var(--c-bevel-hi) !important;
+    padding: 5px 13px 3px 15px !important;
+}
+html[data-theme="classic"] .btn:focus,
+html[data-theme="classic"] button:focus {
+    outline: 1px dotted var(--c-text) !important;
+    outline-offset: -4px !important;
+}
+html[data-theme="classic"] .btn:disabled,
+html[data-theme="classic"] button:disabled {
+    color: var(--c-text-disabled) !important;
+    text-shadow: 1px 1px 0 var(--c-bevel-hi) !important;
+}
+
+html[data-theme="classic"] .btn-primary {
+    background: var(--c-surface) !important;
+    color: var(--c-text) !important;
+    font-weight: bold !important;
+}
+html[data-theme="classic"] .btn-danger {
+    background: var(--c-surface) !important;
+    color: var(--c-danger) !important;
+    font-weight: bold !important;
+}
+html[data-theme="classic"] .btn-outline {
+    background: var(--c-surface) !important;
+    color: var(--c-text) !important;
+}
+html[data-theme="classic"] .action-danger { color: var(--c-danger) !important; }
+
+/* --- Inputs --- */
+html[data-theme="classic"] input[type="text"],
+html[data-theme="classic"] input[type="email"],
+html[data-theme="classic"] input[type="password"],
+html[data-theme="classic"] input[type="number"],
+html[data-theme="classic"] input[type="search"],
+html[data-theme="classic"] textarea,
+html[data-theme="classic"] select {
+    background: var(--c-input-bg) !important;
+    color: var(--c-text) !important;
+    border: 1px solid var(--c-bevel-lo2) !important;
+    box-shadow:
+        inset 1px 1px 0 var(--c-bevel-lo),
+        inset -1px -1px 0 var(--c-bevel-hi) !important;
+    padding: 3px 5px !important;
+    font-family: "MS Sans Serif", Tahoma, sans-serif !important;
+    font-size: 13px !important;
+    border-radius: 0 !important;
+}
+
+/* --- Toggle — render as a Win95 checkbox --- */
+html[data-theme="classic"] .toggle {
+    width: 18px !important;
+    height: 18px !important;
+}
+html[data-theme="classic"] .toggle-slider {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 18px !important;
+    height: 18px !important;
+    background: var(--c-input-bg) !important;
+    border-radius: 0 !important;
+    box-shadow:
+        inset 1px 1px 0 var(--c-bevel-lo),
+        inset -1px -1px 0 var(--c-bevel-hi),
+        inset 2px 2px 0 var(--c-bevel-lo2),
+        inset -2px -2px 0 var(--c-bevel-hi2) !important;
+}
+html[data-theme="classic"] .toggle-slider::before {
+    content: '' !important;
+    position: absolute !important;
+    width: 8px !important;
+    height: 8px !important;
+    left: 4px !important;
+    bottom: auto !important;
+    top: 3px !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    transform: none !important;
+    transition: none !important;
+}
+html[data-theme="classic"] .toggle input:checked + .toggle-slider {
+    background: var(--c-input-bg) !important;
+}
+html[data-theme="classic"] .toggle input:checked + .toggle-slider::before {
+    background: transparent !important;
+    transform: none !important;
+    border-left: 2px solid var(--c-text) !important;
+    border-bottom: 2px solid var(--c-text) !important;
+    width: 9px !important;
+    height: 5px !important;
+    left: 4px !important;
+    top: 4px !important;
+    transform: rotate(-45deg) !important;
+}
+
+/* --- Theme picker (radio list) --- */
+html[data-theme="classic"] .theme-options { gap: 6px !important; }
+html[data-theme="classic"] .theme-option {
+    background: var(--c-surface) !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 4px 6px !important;
+    color: var(--c-text) !important;
+}
+html[data-theme="classic"] .theme-option:hover {
+    background: var(--c-titlebar) !important;
+    color: var(--c-titlebar-text) !important;
+}
+html[data-theme="classic"] .theme-option.selected {
+    background: var(--c-bevel-hi2) !important;
+    color: var(--c-text) !important;
+    box-shadow:
+        inset 1px 1px 0 var(--c-bevel-lo),
+        inset -1px -1px 0 var(--c-bevel-hi) !important;
+}
+html[data-theme="classic"] .theme-radio {
+    width: 12px !important;
+    height: 12px !important;
+    background: var(--c-input-bg) !important;
+    border: 1px solid var(--c-bevel-lo2) !important;
+    box-shadow:
+        inset 1px 1px 0 var(--c-bevel-lo),
+        inset -1px -1px 0 var(--c-bevel-hi) !important;
+    display: inline-block !important;
+    position: relative !important;
+}
+html[data-theme="classic"] .theme-option.selected .theme-radio::after {
+    content: '' !important;
+    position: absolute !important;
+    width: 4px !important;
+    height: 4px !important;
+    background: var(--c-text) !important;
+    left: 3px !important;
+    top: 3px !important;
+}
+
+/* --- Auth messages --- */
+html[data-theme="classic"] .auth-error {
+    background: var(--c-surface) !important;
+    border: 1px solid var(--c-bevel-lo2) !important;
+    box-shadow:
+        inset 1px 1px 0 var(--c-bevel-hi),
+        inset -1px -1px 0 var(--c-bevel-lo) !important;
+    color: var(--c-danger) !important;
+    font-weight: bold !important;
+    padding: 8px 10px !important;
+}
+html[data-theme="classic"] .auth-success {
+    background: var(--c-surface) !important;
+    border: 1px solid var(--c-bevel-lo2) !important;
+    box-shadow:
+        inset 1px 1px 0 var(--c-bevel-hi),
+        inset -1px -1px 0 var(--c-bevel-lo) !important;
+    color: var(--c-success) !important;
+    font-weight: bold !important;
+    padding: 8px 10px !important;
+}
+
+/* --- Badges --- */
+html[data-theme="classic"] .badge {
+    background: var(--c-surface) !important;
+    color: var(--c-text) !important;
+    border: 1px solid var(--c-bevel-lo2) !important;
+    box-shadow:
+        inset 1px 1px 0 var(--c-bevel-hi),
+        inset -1px -1px 0 var(--c-bevel-lo) !important;
+    padding: 1px 6px !important;
+    font-size: 11px !important;
+}
+html[data-theme="classic"] .badge-success { color: var(--c-success) !important; }
+
+/* --- Footer --- */
+html[data-theme="classic"] .footer {
+    background: var(--c-surface) !important;
+    border-top: 1px solid var(--c-bevel-hi) !important;
+    box-shadow: 0 -1px 0 var(--c-bevel-lo) inset !important;
+    color: var(--c-text) !important;
+    padding: 12px 0 !important;
+}
+html[data-theme="classic"] .footer p,
+html[data-theme="classic"] .footer a { color: var(--c-text) !important; }
+
+/* --- Hero --- */
+html[data-theme="classic"] .hero-name {
+    color: var(--c-text) !important;
+    font-size: 28px !important;
+    letter-spacing: 0 !important;
+}
+html[data-theme="classic"] .hero-greeting,
+html[data-theme="classic"] .hero-role,
+html[data-theme="classic"] .hero-desc { color: var(--c-text) !important; }
+
+/* --- Aurora / decorative effects: kill --- */
+html[data-theme="classic"] .aurora,
+html[data-theme="classic"] .aurora-blob,
+html[data-theme="classic"] [class*="aurora"] {
+    display: none !important;
+}
+
+/* --- Scrollbar — chunky classic style --- */
+html[data-theme="classic"] ::-webkit-scrollbar {
+    width: 16px !important;
+    height: 16px !important;
+    background: var(--c-bevel-hi2) !important;
+}
+html[data-theme="classic"] ::-webkit-scrollbar-track {
+    background:
+        repeating-conic-gradient(var(--c-surface) 0% 25%, var(--c-bevel-hi2) 0% 50%) 0 0/4px 4px !important;
+}
+html[data-theme="classic"] ::-webkit-scrollbar-thumb {
+    background: var(--c-surface) !important;
+    border: 1px solid var(--c-bevel-lo2) !important;
+    box-shadow:
+        inset 1px 1px 0 var(--c-bevel-hi),
+        inset -1px -1px 0 var(--c-bevel-lo) !important;
+}
+html[data-theme="classic"] ::-webkit-scrollbar-button {
+    background: var(--c-surface) !important;
+    border: 1px solid var(--c-bevel-lo2) !important;
+    box-shadow:
+        inset 1px 1px 0 var(--c-bevel-hi),
+        inset -1px -1px 0 var(--c-bevel-lo) !important;
+    width: 16px !important;
+    height: 16px !important;
+    display: block !important;
+}
+html[data-theme="classic"] ::-webkit-scrollbar-corner {
+    background: var(--c-surface) !important;
+}
+
+/* --- Block animations / transitions universally --- */
+html[data-theme="classic"] body > *:not(.navbar):not(.nav-menu-mobile) {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+}
+
+/* --- Token / tickets / dashboard generic surfaces --- */
+html[data-theme="classic"] .token-card,
+html[data-theme="classic"] .actions-list,
+html[data-theme="classic"] .info-list { background: transparent !important; }
+
+/* --- Container width tweak so Win95 panels feel right --- */
+html[data-theme="classic"] .container { max-width: 760px !important; }

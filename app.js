@@ -4,6 +4,7 @@ const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const path = require('path');
 const { connectDB } = require('./src/config/db');
+const User = require('./src/models/User');
 
 const indexRouter = require('./src/routes/index');
 const aboutRouter = require('./src/routes/about');
@@ -69,6 +70,25 @@ const sessionMiddleware = session({
 });
 
 app.use(sessionMiddleware);
+
+app.use(async (req, res, next) => {
+    let theme = 'default';
+    if (req.session && req.session.user) {
+        if (!req.session.user.settings) {
+            try {
+                const u = await User.findById(req.session.user.id).select('settings').lean();
+                if (u && u.settings) req.session.user.settings = u.settings;
+            } catch (e) {
+                console.error('[Theme middleware] Failed to load user settings:', e);
+            }
+        }
+        if (req.session.user.settings && req.session.user.settings.theme) {
+            theme = req.session.user.settings.theme;
+        }
+    }
+    res.locals.theme = theme;
+    next();
+});
 
 app.use('/', indexRouter);
 app.use('/about', aboutRouter);

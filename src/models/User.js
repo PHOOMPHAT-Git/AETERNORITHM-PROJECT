@@ -9,7 +9,8 @@ const UserSchema = new mongoose.Schema({
     discord_user_id: { type: String, default: null, unique: true, sparse: true },
     website_linked_at: { type: Date, default: null },
     settings: {
-        hide_email: { type: Boolean, default: true }
+        hide_email: { type: Boolean, default: true },
+        theme: { type: String, enum: ['default', 'classic'], default: 'default' }
     },
     created_at: { type: Date, default: Date.now },
     updated_at: { type: Date, default: Date.now }

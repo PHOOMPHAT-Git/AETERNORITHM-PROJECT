@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 
+const ALLOWED_THEMES = ['default', 'classic'];
+const DEFAULT_SETTINGS = { hide_email: true, theme: 'default' };
+
 router.get('/', async (req, res) => {
     if (!req.session.user) {
         return res.redirect('/login');
@@ -24,10 +27,13 @@ router.post('/', async (req, res) => {
         return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    const { hide_email } = req.body;
+    const { hide_email, theme } = req.body;
 
     if (typeof hide_email !== 'boolean') {
         return res.status(400).json({ message: 'Invalid settings value' });
+    }
+    if (typeof theme !== 'string' || !ALLOWED_THEMES.includes(theme)) {
+        return res.status(400).json({ message: 'Invalid theme value' });
     }
 
     try {
@@ -36,11 +42,11 @@ router.post('/', async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        user.settings = { hide_email };
+        user.settings = { hide_email, theme };
         user.updated_at = Date.now();
         await user.save();
 
-        req.session.user.settings = { hide_email };
+        req.session.user.settings = { hide_email, theme };
 
         res.json({ success: true, message: 'Settings saved successfully' });
     } catch (error) {
@@ -60,12 +66,11 @@ router.post('/reset', async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Reset to default values from User schema
-        user.settings = { hide_email: true };
+        user.settings = { ...DEFAULT_SETTINGS };
         user.updated_at = Date.now();
         await user.save();
 
-        req.session.user.settings = { hide_email: true };
+        req.session.user.settings = { ...DEFAULT_SETTINGS };
 
         res.json({ success: true, message: 'Settings reset successfully' });
     } catch (error) {
